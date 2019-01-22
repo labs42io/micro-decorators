@@ -6,12 +6,37 @@
 Microservice pattern decorators.
 
 ```ts
-// provide example
+class Service {
+  // ensure this method is resolved or rejected within 2 seconds timeout
+  @timeout(2000)
+  async get() {
+    // ...
+  }
+}
 ```
 
-TODO: under development...
+**This package is under development.**  
+Expected v1.0.0 publish: 2019 Q1
 
-Description...
+## Roadmap
+
+* Implement first decorators: `cache`, `circuit`, `concurrency`, `retry`, `throttle`, `timeout`.
+
+* Test coverage > 99%
+
+* Publish v1.0.0 npm package.
+
+* Enhance current decorators:
+
+  * Add more configuration options
+
+  * Add support for groups
+
+  * Add support to decorate entire class
+
+  * Add support to configure using custom policies
+
+* Add more decorators
 
 ## Installation
 
@@ -21,11 +46,22 @@ Using npm:
 $ npm install 'micro-decorators' --save
 ```
 
-Importing:
+## Decorators
 
-```javascript
-import { query } from 'micro-decorators';
-```
+### Cache
+
+### Circuit breaker
+
+### Concurrency limiter
+
+### Retry
+
+### Throttle
+
+### Timeout
+
+Specifies how long a method should execute.  
+If the specified timeout in milliseconds is exceeded then a `Timeout.` error is thrown.
 
 ## License
 
