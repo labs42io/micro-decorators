@@ -16,7 +16,10 @@ export function timeout(milliseconds?: number) {
         timeoutId = wait(rej, milliseconds);
       });
 
-      return Promise.race([expire, func.apply(this, arguments)])
+      const args = arguments;
+      const thenable = new Promise(res => res(func.apply(this, args)));
+
+      return Promise.race([expire, thenable])
         .then(
           (res) => {
             clearTimeout(timeoutId);
@@ -36,10 +39,6 @@ export namespace timeout {
    * @param milliseconds timeout in milliseconds.
    */
   export function current(milliseconds: number): void {
-    if (milliseconds < 1) {
-      throw new Error('Invalid timeout value. Provide a value greater than 0.');
-    }
-
     defaultTimeout = milliseconds;
   }
 }
