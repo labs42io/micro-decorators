@@ -1,9 +1,6 @@
+import { expect } from 'chai';
 import { timeout } from '../lib';
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
+import { delay } from './utils';
 
 describe('timeout', () => {
   describe('When method doesn\'t timeout.', () => {
@@ -22,10 +19,10 @@ describe('timeout', () => {
       expect(result).to.equal(42);
     });
 
-    it('Should return a promise for a sync method.', async () => {
+    it('Should return the result for a sync method.', () => {
       class TestClass {
         @timeout(0)
-        test(): any {
+        test() {
           return 42;
         }
       }
@@ -33,8 +30,7 @@ describe('timeout', () => {
       const target = new TestClass();
       const result = target.test();
 
-      expect(result).to.have.property('then');
-      await expect(result).eventually.to.be.equal(42);
+      expect(result).to.be.equal(42);
     });
 
     it('Should resolve for a void method.', async () => {
@@ -119,7 +115,7 @@ describe('timeout', () => {
       await expect(target.test()).to.eventually.be.rejectedWith('Error 42.');
     });
 
-    it('Should reject with original error for a sync method', async () => {
+    it('Should throw the original error for a sync method', () => {
       class TestClass {
         @timeout()
         test() {
@@ -128,7 +124,7 @@ describe('timeout', () => {
       }
 
       const target = new TestClass();
-      await expect(target.test()).to.eventually.be.rejectedWith('Error 42.');
+      expect(() => target.test()).to.throw('Error 42.');
     });
   });
 
@@ -147,7 +143,3 @@ describe('timeout', () => {
     });
   });
 });
-
-function delay(ms: number) {
-  return new Promise(res => setTimeout(res, ms));
-}

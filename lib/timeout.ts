@@ -8,27 +8,33 @@ let defaultTimeout: number = 60000;
  */
 export function timeout(milliseconds?: number) {
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
-    const func = descriptor.value;
+    const method = descriptor.value;
 
     descriptor.value = function () {
+      const result = method.apply(this, arguments);
+      const isPromiseLike = result && typeof result.then === 'function';
+
+      if (!isPromiseLike) {
+        console.warn(`Used @timeout for sync method '${propertyKey}'.`);
+        return result;
+      }
+
       let timeoutId;
       const expire = new Promise((_, rej) => {
         timeoutId = wait(rej, milliseconds);
       });
 
-      const args = arguments;
-      const thenable = new Promise(res => res(func.apply(this, args)));
+      const resolve = (res) => {
+        clearTimeout(timeoutId);
+        return res;
+      };
 
-      return Promise.race([expire, thenable])
-        .then(
-          (res) => {
-            clearTimeout(timeoutId);
-            return res;
-          },
-          (err) => {
-            clearTimeout(timeoutId);
-            return Promise.reject(err);
-          });
+      const reject = (err) => {
+        clearTimeout(timeoutId);
+        return Promise.reject(err);
+      };
+
+      return Promise.race([expire, result]).then(resolve, reject);
     };
   };
 }
