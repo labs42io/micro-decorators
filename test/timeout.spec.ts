@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { timeout } from '../lib';
 import { delay } from './utils';
 
-describe('timeout', () => {
+describe('@timeout', () => {
   describe('When method doesn\'t timeout.', () => {
-    it('Should resolve with expected result', async () => {
+    it('should resolve with expected result.', async () => {
       class TestClass {
         @timeout(100)
         async test() {
@@ -19,7 +19,7 @@ describe('timeout', () => {
       expect(result).to.equal(42);
     });
 
-    it('Should return the result for a sync method.', () => {
+    it('should return the result for a sync method.', () => {
       class TestClass {
         @timeout(0)
         test() {
@@ -33,7 +33,7 @@ describe('timeout', () => {
       expect(result).to.be.equal(42);
     });
 
-    it('Should resolve for a void method.', async () => {
+    it('should resolve for a void method.', async () => {
       class TestClass {
         @timeout(100)
         async test() {
@@ -47,7 +47,7 @@ describe('timeout', () => {
   });
 
   describe('When method times out', () => {
-    it('Should reject with a `Timeout.` error.', async () => {
+    it('should reject with a `Timeout.` error.', async () => {
       class TestClass {
         @timeout(10)
         async test() {
@@ -61,7 +61,7 @@ describe('timeout', () => {
   });
 
   describe('When using default timeout', () => {
-    it('Should resolve 100ms method', async () => {
+    it('should resolve 100ms method.', async () => {
       class TestClass {
         @timeout()
         async test() {
@@ -74,7 +74,7 @@ describe('timeout', () => {
       await expect(target.test()).to.eventually.be.equal(42);
     });
 
-    it('Should reject 100ms method if default changed to 10ms', async () => {
+    it('should reject 100ms method if default changed to 10ms.', async () => {
       class TestClass {
         @timeout()
         async test() {
@@ -91,7 +91,7 @@ describe('timeout', () => {
   });
 
   describe('When method fails before timeout', () => {
-    it('Should reject with original error', async () => {
+    it('should reject with original error.', async () => {
       class TestClass {
         @timeout()
         async test() {
@@ -103,7 +103,7 @@ describe('timeout', () => {
       await expect(target.test()).to.eventually.be.rejectedWith('Error 42.');
     });
 
-    it('Should reject with original error on throw', async () => {
+    it('should reject with original error on throw.', async () => {
       class TestClass {
         @timeout()
         async test() {
@@ -115,7 +115,7 @@ describe('timeout', () => {
       await expect(target.test()).to.eventually.be.rejectedWith('Error 42.');
     });
 
-    it('Should throw the original error for a sync method', () => {
+    it('should throw the original error for a sync method.', () => {
       class TestClass {
         @timeout()
         test() {
@@ -129,7 +129,7 @@ describe('timeout', () => {
   });
 
   describe('When method fails after timeout', () => {
-    it('Should reject with `Timeout.` error.', async () => {
+    it('should reject with `Timeout.` error.', async () => {
       class TestClass {
         @timeout(10)
         async test() {

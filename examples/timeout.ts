@@ -1,12 +1,10 @@
 import { timeout } from '../lib';
 
-class Test {
+class Service {
   @timeout(10)
   do(): Promise<number> {
     return new Promise((res, rej) => setTimeout(res, 1000));
   }
 }
 
-console.log('Hello world.');
-
-const t = new Test().do().catch(err => console.log('failed'));
+const t = new Service().do().catch(err => console.log(err.message));
