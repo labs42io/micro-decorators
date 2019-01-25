@@ -1,5 +1,7 @@
 let defaultTimeout: number = 60000;
 
+// TODO: analyze possibility to notify cancellation.
+
 /**
  * Specifies how long a method should execute.
  * If the specified timeout in milliseconds is exceeded then a `Timeout.` error is thrown.

@@ -52,7 +52,7 @@ $ npm install 'micro-decorators' --save
 
 ### Circuit breaker
 
-### Concurrency limiter
+### Bulkhead
 
 ### Retry
 

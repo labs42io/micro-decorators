@@ -12,9 +12,8 @@ export type ThrottleOptions = {
    * The `args-hash` (default) scope defines as a scope the arguments list
    * (for all class instances). See `object-hash` package for details about
    * calculating the hash of arguments.
-   * The `class` scope defines a single scope for all class instances.
-   * The `instance` scope defines as a scope the method within current instance
-   * (regardless of arguments list).
+   * The `class` scope defines a single method scope for all class instances.
+   * The `instance` scope defines a per-instance method scope (regardless of arguments list).
    */
   scope?: 'args-hash' | 'class' | 'instance',
 
