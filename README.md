@@ -20,7 +20,7 @@ Expected v1.0.0 publish: 2019 Q1
 
 ## Roadmap
 
-* Implement first decorators: `cache`, `circuit`, `concurrency`, `retry`, `throttle`, `timeout`.
+* Implement first decorators: `cache`, `circuit`, `bulkhead`, `retry`, `throttle`, `timeout`, `fallback`.
 
 * Test coverage > 99%
 
