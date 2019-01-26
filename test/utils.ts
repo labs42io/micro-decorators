@@ -5,7 +5,7 @@ export function delay(ms: number) {
 export function repeat(func: () => void, count: number) {
   const results = [];
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     results.push(func());
   }
 

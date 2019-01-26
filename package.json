@@ -2,7 +2,7 @@
   "name": "micro-decorators",
   "version": "1.0.0",
   "license": "MIT",
-  "description": "Microservice decorators.",
+  "description": "Microservice pattern decorators.",
   "private": true,
   "scripts": {
     "test": "gulp test",
@@ -16,14 +16,16 @@
     "url": "https://github.com/labs42io/micro-decorators/issues"
   },
   "keywords": [
-    "microservices",
-    "decorator",
-    "limiter",
+    "bulkhead",
     "throttle",
     "circuit",
     "cache",
     "retry",
-    "timeout"
+    "timeout",
+    "fallback",
+    "microservice",
+    "pattern",
+    "decorator"
   ],
   "author": {
     "name": "Labs42",
@@ -59,8 +61,6 @@
     "ts-node": "7.0.1",
     "tslint": "5.12.1",
     "tslint-config-airbnb": "5.11.1",
-    "typescript": "3.2.4",
-    "vinyl-buffer": "1.0.1",
-    "vinyl-source-stream": "2.0.0"
+    "typescript": "3.2.4"
   }
 }

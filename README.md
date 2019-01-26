@@ -58,6 +58,8 @@ $ npm install 'micro-decorators' --save
 
 ### Throttle
 
+### Fallback
+
 ### Timeout
 
 Specifies how long a method should execute.  
