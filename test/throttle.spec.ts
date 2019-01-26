@@ -18,7 +18,7 @@ describe('@throttle', () => {
     it('should throw for invalid `behavior`.', () => {
       const factory = () => {
         class Test {
-          @throttle(1000, { behavior: <any>'test' })
+          @throttle(1000, { onError: <any>'test' })
           do() { }
         }
       };
@@ -51,17 +51,17 @@ describe('@throttle', () => {
     });
 
     it('should reject.', async () => {
-      const target = new (ThrottledAsyncClass(1000, { behavior: 'reject' }))();
+      const target = new (ThrottledAsyncClass(1000, { onError: 'reject' }))();
       return expect(Promise.all(repeat(() => target.do(), 1001))).to.eventually.be.rejectedWith();
     });
 
     it('should ignore.', () => {
-      const target = new (ThrottledClass(1000, { behavior: 'ignore' }))();
+      const target = new (ThrottledClass(1000, { onError: 'ignore' }))();
       repeat(() => target.do(), 1001);
     });
 
     it('should ignore async.', () => {
-      const target = new (ThrottledClass(1000, { behavior: 'ignoreAsync' }))();
+      const target = new (ThrottledClass(1000, { onError: 'ignoreAsync' }))();
       return expect(Promise.all(repeat(() => target.do(), 1001))).to.eventually.be.fulfilled;
     });
 

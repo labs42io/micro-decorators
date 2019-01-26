@@ -21,7 +21,7 @@ export type BulkheadOptions = {
    * When `ignoreAsync` then doesn't throw any error and immediately
    * returns a resolved promise.
    */
-  behavior?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
+  onError?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
 };
 
 /**

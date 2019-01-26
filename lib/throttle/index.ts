@@ -1,4 +1,9 @@
-import { ThrottleOptions, DEFAULT_INTERVAL, DEFAULT_SCOPE } from './ThrottleOptions';
+import {
+  ThrottleOptions,
+  DEFAULT_INTERVAL,
+  DEFAULT_SCOPE,
+  DEFAULT_ON_ERROR,
+} from './ThrottleOptions';
 import { createScope } from './scopes';
 
 export { ThrottleOptions };
@@ -35,7 +40,7 @@ export function throttle(
 }
 
 function raiseStrategy(options: ThrottleOptions) {
-  const value = options && options.behavior || 'throw';
+  const value = options && options.onError || DEFAULT_ON_ERROR;
 
   switch (value) {
     case 'reject':

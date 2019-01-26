@@ -7,6 +7,16 @@ export type CircuitOptions = {
   interval?: number,
 
   /**
+   * Specifies how to calculate the threshold for circuit.
+   * The `errors` policy counts only for failures and expects an
+   * integer number for `threshold` option.
+   * The `rate` policy calculates the rate of failures as:
+   * rate = number_of_failures / number_of_total_calls
+   * and expects a number between 0 and 1 for `threshold` option.
+   */
+  policy?: 'errors' | 'rate',
+
+  /**
    * Sets the behavior of handling closed circuit state.
    * When `throw` (default) then throws immediately with an error.
    * When `reject` then returns a rejected promise with an error.
@@ -15,7 +25,7 @@ export type CircuitOptions = {
    * When `ignoreAsync` then doesn't throw any error and immediately
    * returns a resolved promise.
    */
-  behavior?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
+  onError?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
 
   /**
    * The scope of circuit breaker.

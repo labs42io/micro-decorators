@@ -26,9 +26,9 @@ export type ThrottleOptions = {
    * When `ignoreAsync` then doesn't throw any error and immediately
    * returns a resolved promise.
    */
-  behavior?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
+  onError?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
 };
 
 export const DEFAULT_INTERVAL = 1000;
 export const DEFAULT_SCOPE = 'args-hash';
-export const DEFAULT_BEHAVIOR = 'throw';
+export const DEFAULT_ON_ERROR = 'throw';
