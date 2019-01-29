@@ -1,3 +1,5 @@
+import * as hash from 'object-hash';
+
 export type CacheOptions = {
   /**
    * The expiration strategy.
@@ -35,9 +37,7 @@ export type CacheOptions = {
 export function cache(timeout: number, options?: CacheOptions) {
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
     const initialFunction = descriptor.value;
-    console.log(target, propertyKey, descriptor);
     descriptor.value = function (...args) {
-      console.log(target, propertyKey, descriptor);
       return initialFunction(...args);
     };
     return descriptor;
@@ -52,7 +52,10 @@ interface CacheValue<V> {
 class Cahce<K, V> {
   private readonly map = new Map<K, CacheValue<V>>();
 
-  constructor(public readonly timeout: number) { }
+  constructor(
+    public readonly timeout: number,
+    public readonly size: number,
+  ) { }
 
   public add(key: K, value: V): void {
     this.setCache(key, value);
