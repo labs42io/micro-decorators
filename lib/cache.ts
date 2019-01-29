@@ -58,7 +58,9 @@ class Cahce<K, V> {
   ) { }
 
   public add(key: K, value: V): void {
-    this.setCache(key, value);
+    this.has(key)
+      ? this.resetCache(key, value)
+      : this.setCache(key, value);
   }
 
   public has(key: K): boolean {
@@ -66,9 +68,7 @@ class Cahce<K, V> {
       return false;
     }
 
-    const data = this.map.get(key);
-    clearTimeout(data.timeout);
-    this.setCache(key, data.value);
+    this.resetCache(key, this.get(key));
 
     return true;
   }
@@ -78,11 +78,20 @@ class Cahce<K, V> {
     return (this.map.get(key) || defaultValue).value;
   }
 
+  private resetCache(key: K, value: V): void {
+    this.deleteCahce(key);
+    this.setCache(key, value);
+  }
+
+  private deleteCahce(key: K): void {
+    const value = this.map.get(key);
+    clearTimeout(value.timeout);
+    this.map.delete(key);
+  }
+
   private setCache(key: K, value: V): void {
     const timeout = setTimeout(
-      () => {
-        this.map.delete(key);
-      },
+      () => this.map.delete(key),
       this.timeout,
     );
 
