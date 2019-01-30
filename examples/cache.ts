@@ -1,7 +1,7 @@
 import { cache } from '../lib/cache';
 
 class A {
-  @cache(300)
+  @cache(300, { scope: 'instance' })
   public f() {
     return 3;
   }
@@ -9,7 +9,7 @@ class A {
 
 class B {
 
-  @cache(400)
+  @cache(400, { scope: 'class' })
   public g() { }
 }
 
@@ -19,4 +19,6 @@ console.log('b');
 const b = new A();
 console.log(a, b);
 
+a.f();
+b.f();
 new B().g();
