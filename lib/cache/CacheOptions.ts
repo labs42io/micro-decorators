@@ -26,3 +26,8 @@ export type CacheOptions = {
    */
   size?: number,
 };
+
+export const DEFAULT_EXPIRATION = 'absolute';
+export const DEFAULT_SCOPE = 'class';
+export const DEFAULT_STORAGE = 'memory';
+export const DEFAULT_SIZE = null;
