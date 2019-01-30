@@ -1,4 +1,5 @@
 import * as hash from 'object-hash';
+import { Decorator } from 'typescript';
 
 export type CacheOptions = {
   /**
@@ -35,10 +36,37 @@ export type CacheOptions = {
  * @param options (optional) caching options.
  */
 export function cache(timeout: number, options?: CacheOptions) {
+  return (options.scope === 'instance' ? cacheInstance : cacheClass)(timeout, options);
+}
+
+function cacheInstance(timeout: number, options?: CacheOptions) {
+  return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
+    const initialFunction = descriptor.value;
+    const map = new Cache<any, any>(timeout, options.size);
+    descriptor.value = function (...args) {
+      if (!map.has(args)) {
+        map.add(args, initialFunction(...args));
+      }
+
+      return map.get(args);
+    };
+    return descriptor;
+  };
+}
+
+function cacheClass(timeout: number, options?: CacheOptions) {
+  const map = new Map<ClassType, Cache<any, any>>();
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
     const initialFunction = descriptor.value;
     descriptor.value = function (...args) {
-      return initialFunction(...args);
+      if (!map.has(target)) {
+        map.set(target, new Cache<any, any>(timeout, options.size));
+      }
+      const classMap = map.get(target);
+      if (!classMap.has(args)) {
+        classMap.add(args, initialFunction(...args));
+      }
+      return classMap.get(args);
     };
     return descriptor;
   };
@@ -49,12 +77,16 @@ interface CacheValue<V> {
   value: V;
 }
 
-class Cahce<K, V> {
+interface ClassType {
+  new(...args): any;
+}
+
+class Cache<K, V> {
   private readonly map = new Map<K, CacheValue<V>>();
 
   constructor(
-    public readonly timeout: number,
-    public readonly size: number,
+    private readonly timeout: number,
+    private readonly limit: number,
   ) { }
 
   public add(key: K, value: V): void {
