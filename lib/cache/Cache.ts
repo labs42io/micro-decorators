@@ -5,13 +5,11 @@ interface CacheValue<V> {
   value: V;
 }
 
-class Cache<K, V> {
-  private readonly map = new Map<K, CacheValue<V>>();
-
+export class Cache<K, V> {
   constructor(
     private readonly timeout: number,
     private readonly expiration: 'absolute' | 'sliding',
-    private readonly storage: StorageType<K, V>,
+    private readonly storage: StorageType<K, CacheValue<V>>,
     private readonly limit: number,
   ) { }
 
@@ -22,7 +20,7 @@ class Cache<K, V> {
   }
 
   public has(key: K): boolean {
-    if (!this.map.has(key)) {
+    if (!this.storage.has(key)) {
       return false;
     }
 
@@ -33,7 +31,7 @@ class Cache<K, V> {
 
   public get(key: K): V {
     const defaultValue = { value: undefined };
-    return (this.map.get(key) || defaultValue).value;
+    return (this.storage.get(key) || defaultValue).value;
   }
 
   private resetCache(key: K, value: V): void {
@@ -42,18 +40,18 @@ class Cache<K, V> {
   }
 
   private deleteCahce(key: K): void {
-    const value = this.map.get(key);
+    const value = this.storage.get(key);
     clearTimeout(value.timeout);
-    this.map.delete(key);
+    this.storage.delete(key);
   }
 
   private setCache(key: K, value: V): void {
     const timeout = setTimeout(
-      () => this.map.delete(key),
+      () => this.storage.delete(key),
       this.timeout,
     );
 
     const data: CacheValue<V> = { timeout, value };
-    this.map.set(key, data);
+    this.storage.set(key, data);
   }
 }
