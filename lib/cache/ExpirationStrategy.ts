@@ -1,8 +1,9 @@
 import { StorageType } from './StorageType';
+import { MemoryStorage } from './MemoryStorage';
 
 export class ExpirationStrategy<K> {
 
-  private readonly expirations = new Map<K, NodeJS.Timeout>();
+  private readonly expirations = new MemoryStorage<K, NodeJS.Timeout>();
 
   constructor(
     private readonly storage: StorageType<K, unknown>,

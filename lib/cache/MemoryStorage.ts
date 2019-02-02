@@ -6,7 +6,7 @@ export class MemoryStorage<K, V> implements StorageType<K, V> {
 
   private readonly storage = new Map<string, V>();
 
-  constructor(private readonly limit: number) { }
+  constructor(private readonly limit?: number) { }
 
   public set(key: K, value: V): void {
     if (this.limit && this.storage.size < this.limit) {
