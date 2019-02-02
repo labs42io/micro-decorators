@@ -30,3 +30,10 @@ export const DEFAULT_EXPIRATION = 'absolute';
 export const DEFAULT_SCOPE = 'class';
 export const DEFAULT_STORAGE = 'memory';
 export const DEFAULT_SIZE = null;
+export const DEFAULT_OPTIONS: CacheOptions = {
+  expiration: DEFAULT_EXPIRATION,
+  scope: DEFAULT_SCOPE,
+  storage: DEFAULT_STORAGE,
+  size: DEFAULT_SIZE,
+};
+
