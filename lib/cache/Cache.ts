@@ -14,7 +14,7 @@ export class Cache<K, V> {
   ) { }
 
   public add(key: K, value: V): void {
-    if (this.storage.size < this.limit) {
+    if (this.limit && this.storage.size >= this.limit) {
       return;
     }
 
