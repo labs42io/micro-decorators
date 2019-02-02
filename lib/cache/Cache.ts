@@ -14,44 +14,41 @@ export class Cache<K, V> {
   ) { }
 
   public add(key: K, value: V): void {
-    this.has(key)
-      ? this.resetCache(key, value)
-      : this.setCache(key, value);
+    if (this.storage.size < this.limit) {
+      return;
+    }
+
+    const timeout = setTimeout(
+      () => this.deleteCahce(key),
+      this.timeout,
+    );
+
+    const data: CacheValue<V> = { timeout, value };
+    this.storage.set(key, data);
   }
 
   public has(key: K): boolean {
-    if (!this.storage.has(key)) {
-      return false;
-    }
-
-    this.resetCache(key, this.get(key));
-
-    return true;
+    return this.storage.has(key);
   }
 
   public get(key: K): V {
-    const defaultValue = { value: undefined };
-    return (this.storage.get(key) || defaultValue).value;
+    const value = this.storage.get(key).value;
+
+    if (this.expiration === 'sliding') {
+      this.resetCache(key, value);
+    }
+
+    return value;
   }
 
   private resetCache(key: K, value: V): void {
     this.deleteCahce(key);
-    this.setCache(key, value);
+    this.add(key, value);
   }
 
   private deleteCahce(key: K): void {
     const value = this.storage.get(key);
     clearTimeout(value.timeout);
     this.storage.delete(key);
-  }
-
-  private setCache(key: K, value: V): void {
-    const timeout = setTimeout(
-      () => this.storage.delete(key),
-      this.timeout,
-    );
-
-    const data: CacheValue<V> = { timeout, value };
-    this.storage.set(key, data);
   }
 }
