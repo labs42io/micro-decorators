@@ -36,4 +36,3 @@ export const DEFAULT_OPTIONS: CacheOptions = {
   storage: DEFAULT_STORAGE,
   size: DEFAULT_SIZE,
 };
-

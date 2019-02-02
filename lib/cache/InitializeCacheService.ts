@@ -1,11 +1,11 @@
 import { CacheOptions } from '../cache';
 import { Cache } from './Cache';
-import { DEFAULT_EXPIRATION, DEFAULT_OPTIONS, DEFAULT_SIZE } from './CacheOptions';
+import { DEFAULT_EXPIRATION, DEFAULT_OPTIONS, DEFAULT_SIZE, DEFAULT_STORAGE } from './CacheOptions';
 import { ExpirationStrategy } from './ExpirationStrategy';
 import { MemoryStorage } from './MemoryStorage';
 import { StorageType } from './StorageType';
 
-export function initializeCacheService<K, V>(
+export function initializeCacheService<K = any, V = any>(
   timeout: number,
   options: CacheOptions = DEFAULT_OPTIONS,
 ): Cache<K, V> {
@@ -16,8 +16,9 @@ export function initializeCacheService<K, V>(
 
 function initializeStore<K, V>(options: CacheOptions): StorageType<K, V> {
   const limit = options.size || DEFAULT_SIZE;
+  const storage = options.storage || DEFAULT_STORAGE;
 
-  switch (options.storage) {
+  switch (storage) {
     case 'memory':
       return new MemoryStorage<K, V>(limit);
 
