@@ -10,7 +10,6 @@ export type CacheOptions = {
    * The cache scope.
    * The `class` (default) scope defines a single method scope for all class instances.
    * The `instance` scope defines a per-instance method scope.
-   * The hash key is calculated using `object-hash` of current arguments list.
    */
   scope?: 'class' | 'instance',
 

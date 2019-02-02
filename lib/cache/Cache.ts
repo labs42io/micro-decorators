@@ -1,30 +1,16 @@
 import { StorageType } from './StorageType';
-
-interface CacheValue<V> {
-  timeout: NodeJS.Timeout;
-  value: V;
-}
+import { ExpirationStrategy } from './ExpirationStrategy';
 
 export class Cache<K, V> {
+
   constructor(
-    private readonly timeout: number,
-    private readonly expiration: 'absolute' | 'sliding',
-    private readonly storage: StorageType<K, CacheValue<V>>,
-    private readonly limit: number,
+    private readonly expiration: ExpirationStrategy<K>,
+    private readonly storage: StorageType<K, V>,
   ) { }
 
   public add(key: K, value: V): void {
-    if (this.limit && this.storage.size >= this.limit) {
-      return;
-    }
-
-    const timeout = setTimeout(
-      () => this.deleteCahce(key),
-      this.timeout,
-    );
-
-    const data: CacheValue<V> = { timeout, value };
-    this.storage.set(key, data);
+    this.expiration.add(key);
+    this.storage.set(key, value);
   }
 
   public has(key: K): boolean {
@@ -32,23 +18,8 @@ export class Cache<K, V> {
   }
 
   public get(key: K): V {
-    const value = this.storage.get(key).value;
-
-    if (this.expiration === 'sliding') {
-      this.resetCache(key, value);
-    }
-
-    return value;
+    this.expiration.update(key);
+    return this.storage.get(key);
   }
 
-  private resetCache(key: K, value: V): void {
-    this.deleteCahce(key);
-    this.add(key, value);
-  }
-
-  private deleteCahce(key: K): void {
-    const value = this.storage.get(key);
-    clearTimeout(value.timeout);
-    this.storage.delete(key);
-  }
 }

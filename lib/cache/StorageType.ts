@@ -3,5 +3,4 @@ export interface StorageType<K, V> {
   get(key: K): V;
   has(key: K): boolean;
   delete(key: K): void;
-  readonly size: number;
 }
