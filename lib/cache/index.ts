@@ -1,6 +1,7 @@
 import { CacheOptions, DEFAULT_SCOPE, DEFAULT_OPTIONS } from './CacheOptions';
 import { initializeCacheService } from './InitializeCacheService';
 import { Cache } from './Cache';
+import { StorageType } from './StorageType';
 
 export { CacheOptions };
 
@@ -11,45 +12,37 @@ export { CacheOptions };
  */
 export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) {
   const scope = options ? options.scope : DEFAULT_SCOPE;
-  return scope === 'class' ? cacheClass(timeout, options) : cacheInstance(timeout, options);
-}
 
-function cacheClass(timeout: number, options?: CacheOptions) {
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
-    const cache = initializeCacheService<IArguments, any>(timeout, options);
     const initialFunction = descriptor.value;
+    const storage =
+      scope === 'class'
+        ? initializeCacheService<IArguments, any>(timeout, options)
+        : new WeakMap<any, Cache<IArguments, any>>();
 
     descriptor.value = function () {
-      return returnData(cache, arguments, initialFunction);
+      const cache = storage instanceof Cache
+        ? storage
+        : returnDataFromStorage(
+          storage,
+          this,
+          () => initializeCacheService(timeout, options),
+        );
+      return returnDataFromStorage(cache as any, arguments, initialFunction);
     };
 
     return descriptor;
   };
 }
 
-function cacheInstance(timeout: number, options?: CacheOptions) {
-  return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
-    const initialFunction = descriptor.value;
-    const storage = new WeakMap<any, Cache<IArguments, any>>();
-
-    descriptor.value = function () {
-      if (!storage.has(this)) {
-        storage.set(this, initializeCacheService(timeout, options));
-      }
-
-      const cache = storage.get(this);
-
-      return returnData(cache, arguments, initialFunction);
-    };
-
-    return descriptor;
-  };
-}
-
-function returnData(cache: Cache<IArguments, any>, args: IArguments, func: Function): any {
-  if (!cache.has(args)) {
-    cache.add(args, func(args));
+function returnDataFromStorage<K, V>(
+  storage: StorageType<K, V>,
+  key: K,
+  getValue: (key: K) => V,
+): V {
+  if (!storage.has(key)) {
+    storage.set(key, getValue(key));
   }
 
-  return cache.get(args);
+  return storage.get(key);
 }

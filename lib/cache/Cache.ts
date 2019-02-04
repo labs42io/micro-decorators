@@ -8,7 +8,7 @@ export class Cache<K, V> {
     private readonly storage: StorageType<K, V>,
   ) { }
 
-  public add(key: K, value: V): void {
+  public set(key: K, value: V): void {
     this.expiration.add(key);
     this.storage.set(key, value);
   }
