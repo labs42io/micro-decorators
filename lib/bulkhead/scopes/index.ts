@@ -4,13 +4,13 @@ import { Bulkhead } from '../Bulkhead';
 
 type ScopeType = { bulkhead(instance: any): Bulkhead };
 
-export function createScope(scope: string, size: number): ScopeType {
+export function createScope(scope: string, threshold: number, size: number): ScopeType {
   switch (scope) {
     case 'instance':
-      return new InstanceScope(size);
+      return new InstanceScope(threshold, size);
 
     case 'class':
-      return new ClassScope(size);
+      return new ClassScope(threshold, size);
 
     default:
       throw new Error(`Scope '${scope}' is not supported.`);

@@ -7,7 +7,7 @@ export type BulkheadOptions = {
   scope?: 'instance' | 'class',
 
   /**
-   * The max size of the execution queue. By default not limited.
+   * The max size of the pending queue. By default not limited.
    */
   size?: number,
 

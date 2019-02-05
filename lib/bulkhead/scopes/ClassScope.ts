@@ -3,8 +3,11 @@ import { Bulkhead } from '../Bulkhead';
 export class ClassScope {
   private readonly bulkheadInstance;
 
-  constructor(size: number) {
-    this.bulkheadInstance = new Bulkhead(size);
+  constructor(
+    private readonly threshold: number,
+    private readonly size: number,
+  ) {
+    this.bulkheadInstance = new Bulkhead(threshold, size);
   }
 
   bulkhead() {

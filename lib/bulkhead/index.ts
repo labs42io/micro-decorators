@@ -17,24 +17,26 @@ export { BulkheadOptions };
  */
 
 export function bulkhead(
-  size: number,
+  threshold: number,
   options?: BulkheadOptions) {
 
-  return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     const raise = raiseStrategy(options, DEFAULT_ON_ERROR);
     const scope = createScope(
       options && options.scope || DEFAULT_SCOPE,
-      size);
+      threshold,
+      options && options.size);
 
     descriptor.value = function () {
-      const bulkhead = scope.bulkhead(this);
-      if (!bulkhead.pass()) {
-        return raise(new Error('Throttle limit exceeded.'));
+      const bulkheader = scope.bulkhead(this);
+
+      if (!bulkheader.pass()) {
+        return raise(new Error('Limiter queue limit reached.'));
       }
 
-      return method.apply(this, arguments);
+      return bulkheader.run(this, method, arguments);
     };
   };
 }
