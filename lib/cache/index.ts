@@ -21,25 +21,34 @@ export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) 
         ? factoryCacheService<any[]>(timeout, options)
         : new WeakMap<ClassType, Cache<any[]>>();
 
-    descriptor.value = function (...args) {
-      const cache = storage instanceof Cache
-        ? storage
-        : returnDataFromStorage(
-          storage as any,
-          this,
-          () => factoryCacheService(timeout, options),
-        );
-
-      const response = returnDataFromStorage(
-        cache as any,
-        args,
-        () => method(...args),
-      );
-
-      return response instanceof Promise ? Promise.resolve(response) : response;
-    };
+    descriptor.value = replaceMethod(method, storage, timeout, options);
 
     return descriptor;
+  };
+}
+
+function replaceMethod(
+  method: Function,
+  storage: Cache<any[]> | WeakMap<ClassType<any>, Cache<any[]>>,
+  timeout: number,
+  options: CacheOptions,
+): Function {
+  return function (...args) {
+    const cache = storage instanceof Cache
+      ? storage
+      : returnDataFromStorage(
+        storage as any,
+        this,
+        () => factoryCacheService(timeout, options),
+      );
+
+    const response = returnDataFromStorage(
+      cache as any,
+      args,
+      () => method(...args),
+    );
+
+    return response instanceof Promise ? Promise.resolve(response) : response;
   };
 }
 
