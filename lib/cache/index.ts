@@ -1,5 +1,5 @@
 import { CacheOptions, DEFAULT_SCOPE, DEFAULT_OPTIONS } from './CacheOptions';
-import { initializeCacheService as factoryCacheService } from './InitializeCacheService';
+import { factoryCacheService as factoryCacheService } from './FactoryCacheService';
 import { Cache } from './Cache';
 import { StorageType } from './StorageType';
 import { ClassType } from '../interfaces/class';

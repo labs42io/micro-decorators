@@ -1,11 +1,11 @@
-import { CacheOptions } from '../cache';
+import { CacheOptions } from '.';
 import { Cache } from './Cache';
 import { DEFAULT_EXPIRATION, DEFAULT_OPTIONS, DEFAULT_SIZE, DEFAULT_STORAGE } from './CacheOptions';
 import { ExpirationStrategy } from './ExpirationStrategy';
 import { MemoryStorage } from './MemoryStorage';
 import { StorageType } from './StorageType';
 
-export function initializeCacheService<K = any>(
+export function factoryCacheService<K = any>(
   timeout: number,
   options: CacheOptions = DEFAULT_OPTIONS,
 ): Cache<K> {
