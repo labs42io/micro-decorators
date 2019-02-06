@@ -3,10 +3,10 @@ import { MemoryStorage } from './MemoryStorage';
 
 export class ExpirationStrategy<K> {
 
-  private readonly expirations = new MemoryStorage<K, NodeJS.Timeout>();
+  private readonly expirations = new MemoryStorage<K>();
 
   constructor(
-    private readonly storage: StorageType<K, unknown>,
+    private readonly storage: StorageType<K>,
     private readonly expiration: 'absolute' | 'sliding',
     private readonly timeout: number,
   ) { }
