@@ -3,6 +3,7 @@ import { factoryCacheService as factoryCacheService } from './FactoryCacheServic
 import { Cache } from './Cache';
 import { StorageType } from './StorageType';
 import { ClassType } from '../interfaces/class';
+import { checkCacheOptions } from './checkCacheOptions';
 
 export { CacheOptions };
 
@@ -12,6 +13,7 @@ export { CacheOptions };
  * @param options (optional) caching options.
  */
 export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) {
+  checkCacheOptions(options);
   const scope = options ? options.scope : DEFAULT_SCOPE;
 
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {

@@ -21,9 +21,6 @@ function factoryStore<K>(options: CacheOptions): StorageType<K> {
   switch (storage) {
     case 'memory':
       return new MemoryStorage<K>(limit);
-
-    default:
-      throw new Error('Unsuported storage type');
   }
 }
 
