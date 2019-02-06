@@ -28,7 +28,9 @@ export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) 
           this,
           () => initializeCacheService(timeout, options),
         );
-      return returnDataFromStorage(cache as any, arguments, initialFunction);
+
+      const response = returnDataFromStorage(cache as any, arguments, initialFunction);
+      return response instanceof Promise ? Promise.resolve(response) : response;
     };
 
     return descriptor;
