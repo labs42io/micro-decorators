@@ -1,14 +1,14 @@
 import { StorageType } from './StorageType';
 import { ExpirationStrategy } from './ExpirationStrategy';
 
-export class Cache<K, V> {
+export class Cache<K = any> {
 
   constructor(
     private readonly expiration: ExpirationStrategy<K>,
-    private readonly storage: StorageType<K, V>,
+    private readonly storage: StorageType<K>,
   ) { }
 
-  public set(key: K, value: V): void {
+  public set<V>(key: K, value: V): void {
     this.expiration.add(key);
     this.storage.set(key, value);
   }
@@ -17,7 +17,7 @@ export class Cache<K, V> {
     return this.storage.has(key);
   }
 
-  public get(key: K): V {
+  public get<V>(key: K): V {
     this.expiration.update(key);
     return this.storage.get(key);
   }

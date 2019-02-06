@@ -2,13 +2,13 @@ import * as hash from 'object-hash';
 
 import { StorageType } from './StorageType';
 
-export class MemoryStorage<K, V> implements StorageType<K, V> {
+export class MemoryStorage<K> implements StorageType<K> {
 
-  private readonly storage = new Map<string, V>();
+  private readonly storage = new Map<string, any>();
 
   constructor(private readonly limit?: number) { }
 
-  public set(key: K, value: V): void {
+  public set<V>(key: K, value: V): void {
     if (this.limit && this.storage.size < this.limit) {
       return;
     }
@@ -16,7 +16,7 @@ export class MemoryStorage<K, V> implements StorageType<K, V> {
     this.storage.set(hash(key), value);
   }
 
-  public get(key: K): V {
+  public get<V>(key: K): V {
     return this.storage.get(hash(key));
   }
 

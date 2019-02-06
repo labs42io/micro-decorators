@@ -5,22 +5,22 @@ import { ExpirationStrategy } from './ExpirationStrategy';
 import { MemoryStorage } from './MemoryStorage';
 import { StorageType } from './StorageType';
 
-export function initializeCacheService<K = any, V = any>(
+export function initializeCacheService<K = any>(
   timeout: number,
   options: CacheOptions = DEFAULT_OPTIONS,
-): Cache<K, V> {
-  const storage = initializeStore<K, V>(options);
+): Cache<K> {
+  const storage = factoryStore<K>(options);
   const expiration = initializeExpiration(storage, timeout, options);
-  return new Cache<K, V>(expiration, storage);
+  return new Cache<K>(expiration, storage);
 }
 
-function initializeStore<K, V>(options: CacheOptions): StorageType<K, V> {
+function factoryStore<K>(options: CacheOptions): StorageType<K> {
   const limit = options.size || DEFAULT_SIZE;
   const storage = options.storage || DEFAULT_STORAGE;
 
   switch (storage) {
     case 'memory':
-      return new MemoryStorage<K, V>(limit);
+      return new MemoryStorage<K>(limit);
 
     default:
       throw new Error('Unsuported storage type');
@@ -28,7 +28,7 @@ function initializeStore<K, V>(options: CacheOptions): StorageType<K, V> {
 }
 
 function initializeExpiration<K>(
-  storage: StorageType<K, unknown>,
+  storage: StorageType<K>,
   timeout: number,
   options: CacheOptions,
 ): ExpirationStrategy<K> {

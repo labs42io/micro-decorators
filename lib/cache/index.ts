@@ -1,7 +1,8 @@
 import { CacheOptions, DEFAULT_SCOPE, DEFAULT_OPTIONS } from './CacheOptions';
-import { initializeCacheService } from './InitializeCacheService';
+import { initializeCacheService as factoryCacheService } from './InitializeCacheService';
 import { Cache } from './Cache';
 import { StorageType } from './StorageType';
+import { ClassType } from '../interfaces/class';
 
 export { CacheOptions };
 
@@ -14,22 +15,27 @@ export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) 
   const scope = options ? options.scope : DEFAULT_SCOPE;
 
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
-    const initialFunction = descriptor.value;
+    const method = descriptor.value;
     const storage =
       scope === 'class'
-        ? initializeCacheService<IArguments, any>(timeout, options)
-        : new WeakMap<any, Cache<IArguments, any>>();
+        ? factoryCacheService<any[]>(timeout, options)
+        : new WeakMap<ClassType, Cache<any[]>>();
 
-    descriptor.value = function () {
+    descriptor.value = function (...args) {
       const cache = storage instanceof Cache
         ? storage
         : returnDataFromStorage(
-          storage,
+          storage as any,
           this,
-          () => initializeCacheService(timeout, options),
+          () => factoryCacheService(timeout, options),
         );
 
-      const response = returnDataFromStorage(cache as any, arguments, initialFunction);
+      const response = returnDataFromStorage(
+        cache as any,
+        args,
+        () => method(...args),
+      );
+
       return response instanceof Promise ? Promise.resolve(response) : response;
     };
 
@@ -38,7 +44,7 @@ export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) 
 }
 
 function returnDataFromStorage<K, V>(
-  storage: StorageType<K, V>,
+  storage: StorageType<K>,
   key: K,
   getValue: (key: K) => V,
 ): V {

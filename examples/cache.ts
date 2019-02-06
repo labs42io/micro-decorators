@@ -15,9 +15,9 @@ class Service {
 }
 
 const s = new Service();
-console.log(s.f(4));
-console.log(s.g(4));
+s.f(4).then(res => console.log(res)); // first call => no cache
+console.log(s.g(4)); // first call => no cache
 
-new Service().f(3); // first call => no cached
-new Service().f(3); // second call => cached
-new Service().f(4); // first call with this arguments => no cached
+new Service().f(3).then(res => console.log(res)); // first call => no cache
+new Service().f(3).then(res => console.log(res)); // second call => from cache
+new Service().f(4).then(res => console.log(res)); // second call => from cache
