@@ -5,6 +5,7 @@ import {
   DEFAULT_ON_ERROR,
 } from './ThrottleOptions';
 import { createScope } from './scopes';
+import { raiseStrategy } from '../utils';
 
 export { ThrottleOptions };
 
@@ -22,7 +23,7 @@ export function throttle(
 
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
-    const raise = raiseStrategy(options);
+    const raise = raiseStrategy(options, DEFAULT_ON_ERROR);
     const scope = createScope(
       options && options.scope || DEFAULT_SCOPE,
       limit,
@@ -37,23 +38,6 @@ export function throttle(
       return method.apply(this, arguments);
     };
   };
-}
-
-function raiseStrategy(options: ThrottleOptions) {
-  const value = options && options.onError || DEFAULT_ON_ERROR;
-
-  switch (value) {
-    case 'reject':
-      return err => Promise.reject(err);
-    case 'throw':
-      return (err) => { throw err; };
-    case 'ignore':
-      return () => { };
-    case 'ignoreAsync':
-      return () => Promise.resolve();
-    default:
-      throw new Error(`Option ${value} is not supported for 'behavior'.`);
-  }
 }
 
 function calculateInterval(options: ThrottleOptions) {
