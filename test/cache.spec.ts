@@ -1,9 +1,11 @@
 import { expect } from 'chai';
 
 import { cache, CacheOptions } from '../lib';
-import { delay } from './utils';
+import { delay, executionTime } from './utils';
 
-describe('@cache', () => {
+describe.only('@cache', () => {
+  const delayTime = 10;
+
   function numberFunction(n: number): number {
     return n ** 2;
   }
@@ -13,7 +15,7 @@ describe('@cache', () => {
   }
 
   async function asyncFunction(n: number): Promise<number> {
-    await delay(30);
+    await delay(delayTime);
     return n ** 2;
   }
 
@@ -39,7 +41,7 @@ describe('@cache', () => {
     return Test;
   };
 
-  describe('options', () => {
+  describe('options values', () => {
     it('should work without options', () => {
       expect(() => factory(300)).to.not.throw();
     });
@@ -98,4 +100,64 @@ describe('@cache', () => {
       });
     });
   });
+
+  describe.only('options behaivor', () => {
+
+    describe('expiration', () => {
+      describe('absolute', () => {
+        const decorated = new (factory(1000))();
+
+      });
+
+      describe('sliding', () => {
+        const decorated = new (factory(1000))();
+
+      });
+    });
+
+    describe('scope', () => {
+      describe('class', () => {
+        const decorated = new (factory(1000))();
+
+      });
+
+      describe('instance', () => {
+        const decorated = new (factory(1000))();
+
+      });
+    });
+
+    describe('storage', () => {
+      describe('memory', () => {
+        const decorated = new (factory(1000))();
+
+      });
+    });
+
+    describe('size', () => {
+      const options: CacheOptions = { size: 3 };
+
+      it('should cache value if are cached less values than size', async () => {
+        const decorated = new (factory(1000, options))();
+        await decorated.asyncMethod(0);
+        await decorated.asyncMethod(1);
+
+        const time = await executionTime(async () => await decorated.asyncMethod(1));
+        expect(time).to.be.lessThan(delayTime);
+      });
+
+      it('should not cache value if are cached more values than size', async () => {
+        const decorated = new (factory(1000, options))();
+        await decorated.asyncMethod(0);
+        await decorated.asyncMethod(1);
+        await decorated.asyncMethod(2);
+        await decorated.asyncMethod(3);
+
+        const time = await executionTime(() => decorated.asyncMethod(3));
+        expect(time).to.be.gte(delayTime);
+      });
+    });
+
+  });
+
 });

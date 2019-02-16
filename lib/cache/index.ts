@@ -17,12 +17,14 @@ export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) 
     const storage = cacheFactory<any[]>(timeout, options);
 
     descriptor.value = function (...args) {
-      if (!storage.has(args, this)) {
-        storage.set(args, method(...args), this);
+      if (storage.has(args, this)) {
+        const result = storage.get(args, this);
+        return result instanceof Promise ? Promise.resolve(result) : result;
       }
 
-      const result = storage.get(args, this);
-      return result instanceof Promise ? Promise.resolve(result) : result;
+      const result = method(...args);
+      storage.set(args, result, this);
+      return result;
     };
 
     return descriptor;

@@ -10,8 +10,10 @@ export class CacheService<K = any> implements Cache<K> {
   ) { }
 
   public set<V>(key: K, value: V): void {
-    this.expiration.add(key);
     this.storage.set(key, value);
+    if (this.storage.has(key)) {
+      this.expiration.add(key);
+    }
   }
 
   public has(key: K): boolean {
