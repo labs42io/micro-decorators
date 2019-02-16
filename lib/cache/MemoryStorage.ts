@@ -9,7 +9,7 @@ export class MemoryStorage<K> implements Storage<K> {
   constructor(private readonly limit?: number) { }
 
   public set<V>(key: K, value: V): Storage<K> {
-    if (this.limit && this.storage.size < this.limit) {
+    if (this.limit !== undefined && this.storage.size < this.limit) {
       return this;
     }
 
