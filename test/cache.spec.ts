@@ -3,44 +3,40 @@ import { expect } from 'chai';
 import { cache, CacheOptions } from '../lib';
 import { delay, repeat } from './utils';
 
-describe.only('@cache', () => {
-  class Test {
-    public numberMethod(n: number): number {
-      return n ** 2;
-    }
+describe('@cache', () => {
+  function numberFunction(n: number): number {
+    return n ** 2;
+  }
 
-    public stringMethod(s: string): string {
-      return s + s;
-    }
+  function stringFunction(s: string): string {
+    return s + s;
+  }
 
-    public async asyncMethod(n: number): Promise<number> {
-      await delay(30);
-      return n ** 2;
-    }
+  async function asyncFunction(n: number): Promise<number> {
+    await delay(30);
+    return n ** 2;
   }
 
   const factory = (timeout: number, options?: CacheOptions) => {
-    const test = new Test();
-
-    class TestWithCache implements Test {
+    class Test {
 
       @cache(timeout, options)
       public numberMethod(n: number): number {
-        return test.numberMethod(n);
+        return numberFunction(n);
       }
 
       @cache(timeout, options)
       public stringMethod(s: string): string {
-        return test.stringMethod(s);
+        return stringFunction(s);
       }
 
       @cache(timeout, options)
       public async asyncMethod(n: number): Promise<number> {
-        return await test.asyncMethod(n);
+        return await asyncFunction(n);
       }
     }
 
-    return TestWithCache;
+    return Test;
   };
 
   describe('options', () => {
@@ -77,21 +73,20 @@ describe.only('@cache', () => {
   });
 
   describe("it shouldn't change method behaivor", () => {
-    const initial = new Test();
     const decorated = new (factory(1000))();
 
     it('should return same value as without decorator', () => {
-      expect(initial.numberMethod(3)).to.be.equals(decorated.numberMethod(3));
+      expect(numberFunction(3)).to.be.equals(decorated.numberMethod(3));
     });
 
     it('should return same value as without decorator for async methods', async () => {
-      expect(await initial.asyncMethod(3)).to.be.equals(await decorated.asyncMethod(3));
+      expect(await asyncFunction(3)).to.be.equals(await decorated.asyncMethod(3));
     });
 
     describe('result should be same at multiple calls', () => {
       it('for sync methods', () => {
         const expection =
-          () => expect(initial.numberMethod(3)).to.be.equals(decorated.numberMethod(3));
+          () => expect(numberFunction(3)).to.be.equals(decorated.numberMethod(3));
 
         repeat(expection, 100);
       });
