@@ -1,9 +1,9 @@
 import { CacheOptions, DEFAULT_SCOPE, DEFAULT_OPTIONS } from './CacheOptions';
-import { factoryCacheService as factoryCacheService } from './FactoryCacheService';
+import { CacheFactory as CacheFactory } from './Create';
 import { Cache } from './Cache';
-import { StorageType } from './StorageType';
+import { Storage } from './Storage';
 import { ClassType } from '../interfaces/class';
-import { checkCacheOptions } from './checkCacheOptions';
+import { checkOptions } from './checkCacheOptions';
 
 export { CacheOptions };
 
@@ -13,14 +13,14 @@ export { CacheOptions };
  * @param options (optional) caching options.
  */
 export function cache(timeout: number, options: CacheOptions = DEFAULT_OPTIONS) {
-  checkCacheOptions(options);
+  checkOptions(options);
   const scope = options ? options.scope : DEFAULT_SCOPE;
 
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
     const storage =
       scope === 'class'
-        ? factoryCacheService<any[]>(timeout, options)
+        ? CacheFactory<any[]>(timeout, options)
         : new WeakMap<ClassType, Cache<any[]>>();
 
     descriptor.value = replaceMethod(method, storage, timeout, options);
@@ -41,7 +41,7 @@ function replaceMethod(
       : returnDataFromStorage(
         storage as any,
         this,
-        () => factoryCacheService(timeout, options),
+        () => CacheFactory(timeout, options),
       );
 
     const response = returnDataFromStorage(
@@ -55,7 +55,7 @@ function replaceMethod(
 }
 
 function returnDataFromStorage<K, V>(
-  storage: StorageType<K>,
+  storage: Storage<K>,
   key: K,
   getValue: (key: K) => V,
 ): V {

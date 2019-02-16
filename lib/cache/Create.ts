@@ -3,9 +3,9 @@ import { Cache } from './Cache';
 import { DEFAULT_EXPIRATION, DEFAULT_OPTIONS, DEFAULT_SIZE, DEFAULT_STORAGE } from './CacheOptions';
 import { ExpirationStrategy } from './ExpirationStrategy';
 import { MemoryStorage } from './MemoryStorage';
-import { StorageType } from './StorageType';
+import { Storage } from './Storage';
 
-export function factoryCacheService<K = any>(
+export function CacheFactory<K = any>(
   timeout: number,
   options: CacheOptions = DEFAULT_OPTIONS,
 ): Cache<K> {
@@ -14,7 +14,7 @@ export function factoryCacheService<K = any>(
   return new Cache<K>(expiration, storage);
 }
 
-function factoryStore<K>(options: CacheOptions): StorageType<K> {
+function factoryStore<K>(options: CacheOptions): Storage<K> {
   const limit = options.size || DEFAULT_SIZE;
   const storage = options.storage || DEFAULT_STORAGE;
 
@@ -25,7 +25,7 @@ function factoryStore<K>(options: CacheOptions): StorageType<K> {
 }
 
 function initializeExpiration<K>(
-  storage: StorageType<K>,
+  storage: Storage<K>,
   timeout: number,
   options: CacheOptions,
 ): ExpirationStrategy<K> {

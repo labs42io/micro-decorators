@@ -1,4 +1,4 @@
-import { StorageType } from './StorageType';
+import { Storage } from './Storage';
 import { MemoryStorage } from './MemoryStorage';
 
 export class ExpirationStrategy<K> {
@@ -6,7 +6,7 @@ export class ExpirationStrategy<K> {
   private readonly expirations = new MemoryStorage<K>();
 
   constructor(
-    private readonly storage: StorageType<K>,
+    private readonly storage: Storage<K>,
     private readonly expiration: 'absolute' | 'sliding',
     private readonly timeout: number,
   ) { }

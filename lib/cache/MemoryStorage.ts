@@ -1,19 +1,20 @@
 import * as hash from 'object-hash';
 
-import { StorageType } from './StorageType';
+import { Storage } from './Storage';
 
-export class MemoryStorage<K> implements StorageType<K> {
+export class MemoryStorage<K> implements Storage<K> {
 
   private readonly storage = new Map<string, any>();
 
   constructor(private readonly limit?: number) { }
 
-  public set<V>(key: K, value: V): void {
+  public set<V>(key: K, value: V): Storage<K> {
     if (this.limit && this.storage.size < this.limit) {
-      return;
+      return this;
     }
 
     this.storage.set(hash(key), value);
+    return this;
   }
 
   public get<V>(key: K): V {
@@ -24,8 +25,10 @@ export class MemoryStorage<K> implements StorageType<K> {
     return this.storage.has(hash(key));
   }
 
-  public delete(key: K): void {
+  public delete(key: K): Storage<K> {
     this.storage.delete(hash(key));
+
+    return this;
   }
 
 }

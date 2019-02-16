@@ -1,11 +1,11 @@
-import { StorageType } from './StorageType';
+import { Storage } from './Storage';
 import { ExpirationStrategy } from './ExpirationStrategy';
 
 export class Cache<K = any> {
 
   constructor(
     private readonly expiration: ExpirationStrategy<K>,
-    private readonly storage: StorageType<K>,
+    private readonly storage: Storage<K>,
   ) { }
 
   public set<V>(key: K, value: V): void {
