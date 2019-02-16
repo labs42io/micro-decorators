@@ -1,8 +1,8 @@
+import { Storage } from '../storages/Storage';
+import { MemoryStorage } from '../storages/MemoryStorage';
 import { Expiration } from './Expiration';
-import { MemoryStorage } from './MemoryStorage';
-import { Storage } from './Storage';
 
-export class AbsoluteExpiration<K> implements Expiration<K> {
+export class SlidingExpiration<K> implements Expiration<K> {
 
   private readonly expirations = new MemoryStorage<K>();
 
@@ -15,7 +15,9 @@ export class AbsoluteExpiration<K> implements Expiration<K> {
     this.addKey(key);
   }
 
-  public touch(): void {
+  public touch(key: K): void {
+    this.deleteKey(key);
+    this.addKey(key);
   }
 
   private addKey(key: K): void {

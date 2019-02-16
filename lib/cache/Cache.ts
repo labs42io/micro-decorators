@@ -1,5 +1,5 @@
-import { Expiration } from './Expiration';
-import { Storage } from './Storage';
+import { Expiration } from './expirations/Expiration';
+import { Storage } from './storages/Storage';
 
 export class Cache<K = any> {
 

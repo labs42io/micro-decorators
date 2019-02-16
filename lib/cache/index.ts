@@ -1,9 +1,9 @@
 import { CacheOptions, DEFAULT_SCOPE, DEFAULT_OPTIONS } from './CacheOptions';
 import { CacheFactory as CacheFactory } from './Create';
 import { Cache } from './Cache';
-import { Storage } from './Storage';
+import { Storage } from './storages/Storage';
 import { ClassType } from '../interfaces/class';
-import { checkOptions } from './checkCacheOptions';
+import { checkOptions } from './CheckOptions';
 
 export { CacheOptions };
 

@@ -1,11 +1,11 @@
 import { CacheOptions } from '.';
 import { Cache } from './Cache';
 import { DEFAULT_EXPIRATION, DEFAULT_OPTIONS, DEFAULT_SIZE, DEFAULT_STORAGE } from './CacheOptions';
-import { MemoryStorage } from './MemoryStorage';
-import { Storage } from './Storage';
-import { Expiration } from './Expiration';
-import { AbsoluteExpiration } from './AbsoluteExpiration';
-import { SlidingExpiration } from './SlidingExpiration';
+import { MemoryStorage } from './storages/MemoryStorage';
+import { Storage } from './storages/Storage';
+import { Expiration } from './expirations/Expiration';
+import { AbsoluteExpiration } from './expirations/AbsoluteExpiration';
+import { SlidingExpiration } from './expirations/SlidingExpiration';
 
 export function CacheFactory<K = any>(
   timeout: number,
