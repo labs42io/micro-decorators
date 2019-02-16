@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
 import { cache, CacheOptions } from '../lib';
-import { delay, repeat } from './utils';
+import { delay } from './utils';
 
 describe('@cache', () => {
   function numberFunction(n: number): number {
@@ -85,10 +85,9 @@ describe('@cache', () => {
 
     describe('result should be same at multiple calls', () => {
       it('for sync methods', () => {
-        const expection =
-          () => expect(numberFunction(3)).to.be.equals(decorated.numberMethod(3));
-
-        repeat(expection, 100);
+        // tslint:disable-next-line:prefer-array-literal
+        const values = new Array(100).fill(null).map(() => decorated.numberMethod(4));
+        expect(new Set(values).size).to.be.equals(1);
       });
 
       it('for async methods', async () => {
