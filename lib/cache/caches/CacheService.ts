@@ -1,7 +1,8 @@
-import { Expiration } from './expirations/Expiration';
-import { Storage } from './storages/Storage';
+import { Expiration } from '../expirations/Expiration';
+import { Storage } from '../storages/Storage';
+import { Cache } from './Cache';
 
-export class Cache<K = any> {
+export class CacheService<K = any> implements Cache<K> {
 
   constructor(
     private readonly expiration: Expiration<K>,
