@@ -1,10 +1,10 @@
+import { Expiration } from './Expiration';
 import { Storage } from './Storage';
-import { ExpirationStrategy } from './ExpirationStrategy';
 
 export class Cache<K = any> {
 
   constructor(
-    private readonly expiration: ExpirationStrategy<K>,
+    private readonly expiration: Expiration<K>,
     private readonly storage: Storage<K>,
   ) { }
 
@@ -18,7 +18,7 @@ export class Cache<K = any> {
   }
 
   public get<V>(key: K): V {
-    this.expiration.update(key);
+    this.expiration.touch(key);
     return this.storage.get(key);
   }
 

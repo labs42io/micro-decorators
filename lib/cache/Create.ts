@@ -1,9 +1,11 @@
 import { CacheOptions } from '.';
 import { Cache } from './Cache';
 import { DEFAULT_EXPIRATION, DEFAULT_OPTIONS, DEFAULT_SIZE, DEFAULT_STORAGE } from './CacheOptions';
-import { ExpirationStrategy } from './ExpirationStrategy';
 import { MemoryStorage } from './MemoryStorage';
 import { Storage } from './Storage';
+import { Expiration } from './Expiration';
+import { AbsoluteExpiration } from './AbsoluteExpiration';
+import { SlidingExpiration } from './SlidingExpiration';
 
 export function CacheFactory<K = any>(
   timeout: number,
@@ -21,6 +23,9 @@ function factoryStore<K>(options: CacheOptions): Storage<K> {
   switch (storage) {
     case 'memory':
       return new MemoryStorage<K>(limit);
+
+    default:
+      throw new Error('Storage type is not supported.');
   }
 }
 
@@ -28,7 +33,16 @@ function initializeExpiration<K>(
   storage: Storage<K>,
   timeout: number,
   options: CacheOptions,
-): ExpirationStrategy<K> {
+): Expiration<K> {
   const expirationType = options.expiration || DEFAULT_EXPIRATION;
-  return new ExpirationStrategy<K>(storage, expirationType, timeout);
+  switch (expirationType) {
+    case 'absolute':
+      return new AbsoluteExpiration<K>(storage, timeout);
+
+    case 'sliding':
+      return new SlidingExpiration<K>(storage, timeout);
+
+    default:
+      throw new Error('Expiration type is not supported.');
+  }
 }

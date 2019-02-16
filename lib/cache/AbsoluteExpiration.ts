@@ -1,13 +1,13 @@
-import { Storage } from './Storage';
+import { Expiration } from './Expiration';
 import { MemoryStorage } from './MemoryStorage';
+import { Storage } from './Storage';
 
-export class ExpirationStrategy<K> {
+export class AbsoluteExpiration<K> implements Expiration<K> {
 
   private readonly expirations = new MemoryStorage<K>();
 
   constructor(
     private readonly storage: Storage<K>,
-    private readonly expiration: 'absolute' | 'sliding',
     private readonly timeout: number,
   ) { }
 
@@ -15,13 +15,7 @@ export class ExpirationStrategy<K> {
     this.addKey(key);
   }
 
-  public update(key: K): void {
-    if (this.expiration !== 'sliding') {
-      return;
-    }
-
-    this.deleteKey(key);
-    this.addKey(key);
+  public touch(): void {
   }
 
   private addKey(key: K): void {
