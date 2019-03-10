@@ -2,7 +2,7 @@ import { InstanceScope } from './InstanceScope';
 import { ClassScope } from './ClassScope';
 import { Bulkhead } from '../Bulkhead';
 
-type ScopeType = { bulkhead(instance: any): Bulkhead };
+type ScopeType<T = any> = { bulkhead(instance: T): Bulkhead };
 
 export function createScope(scope: string, threshold: number, size: number): ScopeType {
   switch (scope) {

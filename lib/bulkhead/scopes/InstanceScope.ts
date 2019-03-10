@@ -1,6 +1,6 @@
 import { Bulkhead } from '../Bulkhead';
 
-export class InstanceScope {
+export class InstanceScope<T = any> {
   private readonly map: WeakMap<any, Bulkhead> = new WeakMap();
 
   constructor(
@@ -8,11 +8,11 @@ export class InstanceScope {
     private readonly size: number,
   ) { }
 
-  bulkhead(instance: any) {
+  bulkhead(instance: T) {
     return this.map.get(instance) || this.create(instance);
   }
 
-  private create(instance: any) {
+  private create(instance: T) {
     const bulkhead = new Bulkhead(this.threshold, this.size);
     this.map.set(instance, bulkhead);
 

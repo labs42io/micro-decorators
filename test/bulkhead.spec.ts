@@ -65,6 +65,19 @@ describe('@bulkhead', () => {
       expect(result).to.eq(42);
     });
 
+    it.skip('should return original error', async () => {
+      class TestClass {
+        @bulkhead(1)
+        async do() {
+          throw new Error('TestClass');
+        }
+      }
+
+      const target = new TestClass();
+
+      expect(() => target.do()).to.throw('TestClass');
+    });
+
   });
 
   describe('When requests should be queued', () => {
@@ -109,12 +122,12 @@ describe('@bulkhead', () => {
   describe('When queue limit reach', () => {
     it('should throw by default.', () => {
       const target = new (BulkheadAsyncClass(1, { size: 1 }))();
-      expect(() => repeat(() => target.do(), 3)).to.throw('Limiter queue limit reached.');
+      expect(() => repeat(() => target.do(), 3)).to.throw('Bulkhead queue limit reached.');
     });
 
     it('should throw.', () => {
       const target = new (BulkheadAsyncClass(1, { size: 1, onError: 'throw' }))();
-      expect(() => repeat(() => target.do(), 3)).to.throw('Limiter queue limit reached.');
+      expect(() => repeat(() => target.do(), 3)).to.throw('Bulkhead queue limit reached.');
     });
 
     it('should reject.', async () => {
@@ -127,10 +140,6 @@ describe('@bulkhead', () => {
       repeat(() => target.do(), 3);
     });
 
-    it('should ignore async.', () => {
-      const target = new (BulkheadAsyncClass(1, { size: 1, onError: 'ignoreAsync' }))();
-      return expect(Promise.all(repeat(() => target.do(), 3))).to.eventually.be.fulfilled;
-    });
   });
 
   describe('When using `instance` scope', () => {
@@ -163,7 +172,7 @@ describe('@bulkhead', () => {
     it('should throw for reached limit.', () => {
       const target = new (BulkheadAsyncClass(10, { size: 100, scope: 'instance' }))();
 
-      expect(() => repeat(() => target.do(), 111)).to.be.throw('Limiter queue limit reached.');
+      expect(() => repeat(() => target.do(), 111)).to.be.throw('Bulkhead queue limit reached.');
     });
 
   });
@@ -178,7 +187,7 @@ describe('@bulkhead', () => {
     it('should throw for same instance.', () => {
       const target = new (BulkheadAsyncClass(10, { size: 42, scope: 'class' }))();
 
-      expect(() => repeat(() => target.do(), 53)).to.throw('Limiter queue limit reached.');
+      expect(() => repeat(() => target.do(), 53)).to.throw('Bulkhead queue limit reached.');
     });
 
     it('should throw for different instances.', () => {

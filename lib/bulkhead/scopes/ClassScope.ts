@@ -1,16 +1,16 @@
 import { Bulkhead } from '../Bulkhead';
 
 export class ClassScope {
-  private readonly bulkheadInstance;
+  private readonly limiter;
 
   constructor(
     private readonly threshold: number,
     private readonly size: number,
   ) {
-    this.bulkheadInstance = new Bulkhead(threshold, size);
+    this.limiter = new Bulkhead(threshold, size);
   }
 
   bulkhead() {
-    return this.bulkheadInstance;
+    return this.limiter;
   }
 }

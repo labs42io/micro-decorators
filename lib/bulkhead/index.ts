@@ -30,13 +30,13 @@ export function bulkhead(
       options && options.size);
 
     descriptor.value = function () {
-      const bulkheader = scope.bulkhead(this);
+      const bulkhead = scope.bulkhead(this);
 
-      if (!bulkheader.pass()) {
-        return raise(new Error('Limiter queue limit reached.'));
+      if (!bulkhead.pass()) {
+        return raise(new Error('Bulkhead queue limit reached.'));
       }
 
-      return bulkheader.run(this, method, arguments);
+      return bulkhead.run(this, method, arguments);
     };
   };
 }

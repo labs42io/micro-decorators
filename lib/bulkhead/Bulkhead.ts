@@ -1,46 +1,47 @@
-import { DEFAULT_SIZE } from './BulkheadOptions';
-
 export class Bulkhead {
 
-  private inFlight: number = 0;
+  private inExecution: number = 0;
   private queue: any[] = [];
+
+  private count = 1;
 
   constructor(
     private readonly threshold: number,
-    private readonly size: number = DEFAULT_SIZE,
+    private readonly size: number,
   ) { }
 
   public pass(): boolean {
-    return !this.size || this.queue.length < this.size;
+    return this.size === undefined || this.queue.length < this.size;
   }
 
   public run(scope: any, method: () => Promise<any>, args: any) {
-    if (this.inFlight < this.threshold) {
-      return this.runInstant(scope, method, args);
+    if (this.inExecution < this.threshold) {
+      return this.execute(scope, method, args);
     }
 
     return this.addToQueue(scope, method, args);
   }
 
-  private async runInstant(scope, method: () => Promise<any>, args: any) {
+  private async execute(scope, method: () => Promise<any>, args: any, resolve?) {
     let response;
-    this.inFlight += 1;
+    this.inExecution += 1;
 
     try {
       response = await method.apply(scope, args);
-    } catch (e) { }
+    } catch (e) {
+      // throw e;
+    } finally {
 
-    this.inFlight -= 1;
-    this.callNext();
+      this.inExecution -= 1;
+      this.callNext();
+    }
 
-    return response;
+    return resolve ? resolve(response) : response;
   }
 
   private addToQueue(scope: any, method: () => Promise<any>, args: any) {
-    const promise = new Promise(resolve => resolve(this.runInstant(scope, method, args)));
-
-    this.queue.push(promise);
-    return promise;
+    return new Promise((resolve, reject) =>
+      this.queue.push({ scope, method, args, resolve, reject }));
   }
 
   private callNext() {
@@ -49,6 +50,8 @@ export class Bulkhead {
     }
 
     const promise = this.queue.shift();
-    return promise;
+    const { scope, method, args, resolve, reject } = promise;
+
+    return this.execute(scope, method, args, resolve);
   }
 }
