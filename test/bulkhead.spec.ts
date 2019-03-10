@@ -29,6 +29,20 @@ describe('@bulkhead', () => {
   });
 
   describe('When request should be processed without queue', () => {
+    it.skip('should return result for sync method', async () => {
+      class TestClass {
+        @bulkhead(1)
+        do(args?) {
+          return args || 42;
+        }
+      }
+
+      const target = new TestClass();
+      const result = target.do();
+
+      expect(result).to.be.eq(42);
+    });
+
     it('should return result', async () => {
       const target = new (BulkheadAsyncClass(10))();
       const result = await target.do();
@@ -76,6 +90,19 @@ describe('@bulkhead', () => {
       const target = new TestClass();
 
       expect(() => target.do()).to.throw('TestClass');
+    });
+
+    it('should reject original error', async () => {
+      class TestClass {
+        @bulkhead(1)
+        do() {
+          return new Promise((resolve, reject) => reject('42'));
+        }
+      }
+
+      const target = new TestClass();
+
+      return expect(target.do()).to.eventually.be.rejectedWith('42');
     });
 
   });
