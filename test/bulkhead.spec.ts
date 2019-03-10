@@ -96,7 +96,7 @@ describe('@bulkhead', () => {
       class TestClass {
         @bulkhead(1)
         do() {
-          return new Promise((resolve, reject) => reject('42'));
+          return Promise.reject(new Error('42'));
         }
       }
 
