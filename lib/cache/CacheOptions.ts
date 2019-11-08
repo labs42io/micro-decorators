@@ -4,13 +4,12 @@ export type CacheOptions = {
    * `absolute` (default) strategy expires after the the set amount of time.
    * `sliding` strategy expires after the method hasn't been called in a set amount of time.
    */
-  expiration: 'absolute' | 'sliding', // TODO: allow custom policy to be injected
+  expiration?: 'absolute' | 'sliding', // TODO: allow custom policy to be injected
 
   /**
    * The cache scope.
    * The `class` (default) scope defines a single method scope for all class instances.
    * The `instance` scope defines a per-instance method scope.
-   * The hash key is calculated using `object-hash` of current arguments list.
    */
   scope?: 'class' | 'instance',
 
@@ -27,11 +26,13 @@ export type CacheOptions = {
   size?: number,
 };
 
-/**
- * Caches the result of a method.
- * @param timeout cache timeout in milliseconds.
- * @param options (optional) caching options.
- */
-export function cache(timeout: number, options?: CacheOptions) {
-  throw new Error('Not implemented.');
-}
+export const DEFAULT_EXPIRATION = 'absolute';
+export const DEFAULT_SCOPE = 'class';
+export const DEFAULT_STORAGE = 'memory';
+export const DEFAULT_SIZE = null;
+export const DEFAULT_OPTIONS: CacheOptions = {
+  expiration: DEFAULT_EXPIRATION,
+  scope: DEFAULT_SCOPE,
+  storage: DEFAULT_STORAGE,
+  size: DEFAULT_SIZE,
+};
