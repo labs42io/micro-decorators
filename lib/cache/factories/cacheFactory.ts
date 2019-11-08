@@ -7,28 +7,42 @@ import { HashService } from '../hash/hash';
 import { expirationFactory } from './expirationFactory';
 import { storeFactory } from './storeFactory';
 
+const cacheFactories: ReadonlyMap<
+  'class' | 'instance',
+  <K>(timeout: number, options: CacheOptions) => Cache<K>
+> = new Map<'class' | 'instance', <K>(timeout: number, options: CacheOptions) => Cache<K>>()
+  .set('class', classCacheFactory)
+  .set('instance', instanceCacheFactory);
+
 export function cacheFactory<K = any>(
   timeout: number,
   options: CacheOptions = DEFAULT_OPTIONS,
 ): Cache<K> {
   const scope = options.scope || DEFAULT_SCOPE;
 
+  const factory = cacheFactories.get(scope);
+
+  if (!factory) {
+    throw new Error(`@cahce Scope type is not suported: ${scope}.`);
+  }
+
+  return factory(timeout, options);
+}
+
+function classCacheFactory<K>(timeout: number, options: CacheOptions): ClassCache<K> {
+  const storage = storeFactory(options);
+  const expiration = expirationFactory(timeout, options);
   const hash = new HashService();
 
-  switch (scope) {
-    case 'class':
-      const storage = storeFactory(options);
-      const expiration = expirationFactory(timeout, options);
-      return new ClassCache<K>(storage, expiration, hash);
+  return new ClassCache<K>(storage, expiration, hash);
+}
 
-    case 'instance':
-      return new InstanceCache(
-        () => storeFactory(options),
-        () => expirationFactory(timeout, options),
-        hash,
-      );
+function instanceCacheFactory<K>(timeout: number, options: CacheOptions): InstanceCache<K> {
+  const hash = new HashService();
 
-    default:
-      throw new Error(`@cahce Scope type is not suported: ${scope}.`);
-  }
+  return new InstanceCache(
+    () => storeFactory(options),
+    () => expirationFactory(timeout, options),
+    hash,
+  );
 }
