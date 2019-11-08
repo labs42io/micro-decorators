@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { cache, CacheOptions } from '../lib';
 import { delay, executionTime } from './utils';
 
-describe.only('@cache', () => {
+describe('@cache', () => {
 
   const delayTime = 5;
   const timePrecision = 1;
