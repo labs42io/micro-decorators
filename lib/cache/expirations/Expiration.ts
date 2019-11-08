@@ -1,4 +1,3 @@
-export interface Expiration<K> {
-  add(key: K): void;
-  touch(key: K): void;
+export interface Expiration {
+  add(key: string, clear: () => any): void;
 }

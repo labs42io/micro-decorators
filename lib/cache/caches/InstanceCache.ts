@@ -1,28 +1,53 @@
+import { ClassType } from '../../interfaces/class';
+import { Expiration } from '../expirations/Expiration';
+import { HashService } from '../hash/hash';
+import { Storage } from '../storages/Storage';
 import { Cache } from './Cache';
-import { InstanceStorage } from './InstanceStorage';
 
 export class InstanceCache<K = any> implements Cache<K> {
 
+  private readonly instanceStorage = new WeakMap<ClassType, [Storage, Expiration]>();
+
   constructor(
-    private readonly storage: InstanceStorage<K>,
+    private readonly storage: () => Storage,
+    private readonly expiration: () => Expiration,
+    private readonly hash: HashService,
   ) { }
 
-  public set<V>(key: K, value: V, instance: any): void {
-    const cache = this.storage.get(instance);
+  public set<V>(key: K, value: V, instance: ClassType): this {
+    const keyHash = this.hash.hash(key);
+    const [storage, expiration] = this.instanceData(instance);
 
-    return cache.set(key, value);
+    storage.set(keyHash, value);
+    expiration.add(keyHash, () => this.delete(keyHash, instance));
+
+    return this;
   }
 
-  public has(key: K, instance: any): boolean {
-    const cache = this.storage.get(instance);
+  public get<V>(key: K, instance: ClassType): V {
+    const keyHash = this.hash.hash(key);
+    const [storage, expiration] = this.instanceData(instance);
 
-    return cache.has(key);
+    expiration.add(keyHash, () => this.delete(keyHash, instance));
+    return storage.get(keyHash);
   }
 
-  public get<V>(key: K, instance: any): V {
-    const cache = this.storage.get(instance);
+  private delete(key: string, instance: ClassType): this {
+    const [storage] = this.instanceData(instance);
 
-    return cache.get(key);
+    storage.delete(key);
+
+    return this;
+  }
+
+  private instanceData(instance: ClassType): [Storage, Expiration] {
+    if (!this.instanceStorage.has(instance)) {
+      const storage = this.storage();
+      const expiration = this.expiration();
+      this.instanceStorage.set(instance, [storage, expiration]);
+    }
+
+    return this.instanceStorage.get(instance);
   }
 
 }

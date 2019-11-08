@@ -1,36 +1,35 @@
-import { Storage } from '../storages/Storage';
-import { MemoryStorage } from '../storages/MemoryStorage';
 import { Expiration } from './Expiration';
 
-export class SlidingExpiration<K> implements Expiration<K> {
+export class SlidingExpiration implements Expiration {
 
-  private readonly expirations = new MemoryStorage<K>();
+  private readonly expirations = new Map<string, [number, () => any]>();
 
   constructor(
-    private readonly storage: Storage<K>,
     private readonly timeout: number,
   ) { }
 
-  public add(key: K): void {
-    this.addKey(key);
+  public add(key: string, clear: () => any): void {
+    this.expirations.has(key) ? this.update(key, clear) : this.addKey(key, clear);
   }
 
-  public touch(key: K): void {
-    this.deleteKey(key);
-    this.addKey(key);
-  }
-
-  private addKey(key: K): void {
-    const timeout = setTimeout(
-      () => this.deleteKey(key),
+  private addKey(key: string, clear: () => any): void {
+    const timeoutId = setTimeout(
+      () => {
+        clear();
+        this.expirations.delete(key);
+      },
       this.timeout,
     );
-    this.expirations.set(key, timeout);
+
+    this.expirations.set(key, [timeoutId as any, clear]);
   }
 
-  private deleteKey(key: K): void {
+  private update(key: string, clear: () => any): void {
+    const [timeoutId] = this.expirations.get(key);
+    clearTimeout(timeoutId as any);
+
     this.expirations.delete(key);
-    this.storage.delete(key);
+    this.addKey(key, clear);
   }
 
 }

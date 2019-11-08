@@ -1,34 +1,27 @@
 import { Expiration } from './Expiration';
-import { MemoryStorage } from '../storages/MemoryStorage';
-import { Storage } from '../storages/Storage';
 
-export class AbsoluteExpiration<K> implements Expiration<K> {
+export class AbsoluteExpiration implements Expiration {
 
-  private readonly expirations = new MemoryStorage<K>();
+  private readonly expirations = new Set<string>();
 
   constructor(
-    private readonly storage: Storage<K>,
     private readonly timeout: number,
   ) { }
 
-  public add(key: K): void {
-    this.addKey(key);
+  public add(key: string, clear: () => any): void {
+    if (this.expirations.has(key)) {
+      return;
+    }
+
+    this.expirations.add(key);
+    setTimeout(this.clear(key, clear), this.timeout);
   }
 
-  public touch(): void {
-  }
-
-  private addKey(key: K): void {
-    const timeout = setTimeout(
-      () => this.deleteKey(key),
-      this.timeout,
-    );
-    this.expirations.set(key, timeout);
-  }
-
-  private deleteKey(key: K): void {
-    this.expirations.delete(key);
-    this.storage.delete(key);
+  private clear(key: string, clear: () => any): () => void {
+    return () => {
+      clear();
+      this.expirations.delete(key);
+    };
   }
 
 }

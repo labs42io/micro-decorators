@@ -1,6 +1,6 @@
-export interface Storage<K> {
-  set<V>(key: K, value: V): Storage<K>;
-  get<V>(key: K): V;
-  has(key: K): boolean;
-  delete(key: K): Storage<K>;
+export interface Storage {
+  set<V>(key: string, value: V): Storage;
+  get<V>(key: string): V;
+  has(key: string): boolean;
+  delete(key: string): Storage;
 }
