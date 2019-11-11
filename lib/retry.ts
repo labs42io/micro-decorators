@@ -1,3 +1,5 @@
+import { raiseStrategy } from './utils';
+
 export type RetryOptions = {
   /**
    * Sets the behavior of handling the case when all retrials failed.
@@ -26,8 +28,10 @@ export type RetryOptions = {
    * A custom function can be used to provide custom interval (in milliseconds)
    * based on attempt number (indexed from one).
    */
-  waitPattern?: number | number[] | ((attempt: number) => number),
+  waitPattern?: WaitPattern,
 };
+
+type WaitPattern = number | number[] | ((attempt: number) => number);
 
 /**
  * Retries the execution of a method for a given number of attempts.
@@ -36,6 +40,65 @@ export type RetryOptions = {
  * @param attempts max number of attempts to retry execution
  * @param options (optional) retry options
  */
-export function retry(attempts: number, options?: number): any {
-  throw new Error('Not implemented.');
+export function retry(attempts: number, options?: RetryOptions): any {
+  return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
+    const method: Function = descriptor.value;
+    const defaultOptions: RetryOptions = {
+      errorFilter: () => { return true; },
+    };
+    const retryOptions = {
+      ...defaultOptions,
+      ...options,
+    };
+
+    let attemptIndex = 1;
+
+    descriptor.value = function () {
+      return method.apply(this, arguments)
+        .then((result) => {
+          return result;
+        })
+        .catch(async (error) => {
+          const shouldRetry = attemptIndex < attempts && retryOptions.errorFilter(error);
+
+          if (shouldRetry) {
+            if (retryOptions.waitPattern) {
+              await waitByStrategy(attemptIndex, retryOptions.waitPattern);
+            }
+            attemptIndex += 1;
+            return target[propertyKey]();
+          }
+
+          const raise = raiseStrategy({ onError: retryOptions.onError }, 'throw');
+          return raise(new Error('Retry failed.'));
+        });
+    };
+
+    return descriptor;
+  };
+}
+
+function waitByStrategy(attemptIndex: number, waitPattern: WaitPattern): Promise<void> {
+  const isPatternTypeArray = Array.isArray(waitPattern);
+  const patternType = isPatternTypeArray ? 'array' : typeof waitPattern;
+
+  switch (patternType) {
+    case 'number':
+      return wait(waitPattern as number);
+    case 'array':
+      const attemptValues = waitPattern as number[];
+      const shouldWaitValue = attemptIndex > attemptValues.length
+        ? attemptValues[attemptValues.length - 1]
+        : attemptValues[attemptIndex];
+
+      return wait(shouldWaitValue);
+    case 'function':
+      return wait((waitPattern as Function)(attemptIndex));
+    default:
+      throw new Error(`Option ${patternType} is not supported for 'waitPattern'.`);
+  }
+}
+
+function wait(timeout: number = 0): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, timeout));
 }
