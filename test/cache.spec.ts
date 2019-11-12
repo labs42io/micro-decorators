@@ -167,13 +167,13 @@ describe('@cache', () => {
         });
 
         it('should not refresh if was call before expire', async () => {
-          const timeout = 2 * delayTime;
+          const timeout = delayTime + 1;
           const instance = new (factory(timeout, options));
           await instance.method(42);
 
           await delay(timeout / 2);
           await instance.method(42);
-          await delay(timeout / 2 + 1);
+          await delay(timeout / 2);
 
           const time = await executionTime(() => instance.method(42));
           expect(time).to.be.approximately(delayTime, timePrecision);
@@ -195,7 +195,7 @@ describe('@cache', () => {
         });
 
         it('should expire after given timeout', async () => {
-          const timeout = delayTime + 2;
+          const timeout = delayTime;
           const instance = new (factory(timeout, options));
           await instance.method(42);
 
