@@ -5,30 +5,27 @@ import { delay, executionTime } from './utils';
 
 describe('@cache', () => {
 
-  const delayTime = 5;
-  const timePrecision = 1;
+  const delayTime = 8;
+  const timePrecision = 2;
 
-  async function asyncFunction(n: number): Promise<number> {
-    await delay(delayTime);
-    return n + 1;
-  }
-
-  const classFactory = (timeout: number, options?: CacheOptions) => {
+  const factory = (timeout: number, options?: CacheOptions) => {
     class Test {
 
       @cache(timeout, options)
-      public method(n: number): Promise<number> {
-        return asyncFunction(n);
+      public async method(n: number): Promise<number> {
+        await delay(delayTime);
+        return n + 1;
       }
+
     }
 
     return Test;
   };
 
-  it('should cache value if method is called with same arguments', async () => {
+  it('should use cached value if method is called with same arguments', async () => {
     const timeout = 1000;
     const options: CacheOptions = { size: 3 };
-    const instance = new (classFactory(timeout, options));
+    const instance = new (factory(timeout, options));
 
     await instance.method(42);
     const time = await executionTime(() => instance.method(42));
@@ -36,15 +33,29 @@ describe('@cache', () => {
     expect(time).to.be.approximately(0, timePrecision);
   });
 
-  it('should not cache value if method is called with different arguments', async () => {
+  it('should not use cached value if method is called with different arguments', async () => {
     const timeout = 1000;
     const options: CacheOptions = { size: 3 };
-    const instance = new (classFactory(timeout, options));
+    const instance = new (factory(timeout, options));
 
-    const initialTime = await executionTime(() => instance.method(42));
+    await instance.method(42);
     const time = await executionTime(() => instance.method(24));
 
     expect(time).to.be.approximately(delayTime, timePrecision);
+  });
+
+  it('should propagate error if method reject', () => {
+    const errorMessage = 'any error';
+    class Test {
+
+      @cache({ timeout: 100, scope: 'instance' })
+      public async method() {
+        throw new Error(errorMessage);
+      }
+    }
+
+    const instance = new Test();
+    expect(instance.method()).to.be.rejectedWith(errorMessage);
   });
 
   describe('options values', () => {
@@ -52,7 +63,7 @@ describe('@cache', () => {
     const timeout = 1000;
 
     it('should work without options', () => {
-      expect(() => new (classFactory(timeout))).to.not.throw();
+      expect(() => new (factory(timeout))).to.not.throw();
     });
 
     it('should work with correct options', () => {
@@ -63,7 +74,23 @@ describe('@cache', () => {
         size: 300,
       };
 
-      expect(() => new (classFactory(timeout, options))).to.not.throw();
+      expect(() => new (factory(timeout, options))).to.not.throw();
+    });
+
+    it('should work with one parameter', () => {
+      const test = () => {
+        class Test {
+
+          @cache({ timeout: 100, scope: 'instance' })
+          public async method() {
+            return 42;
+          }
+        }
+
+        return Test;
+      };
+
+      expect(test).not.to.throw();
     });
 
     describe('should throw for wrong options', () => {
@@ -71,19 +98,19 @@ describe('@cache', () => {
       it('should throw if expiration is not a valid value', () => {
         const options: CacheOptions = { expiration: 'abc' as any };
         const expectedError = '@cache Expiration type is not supported: abc.';
-        expect(() => new (classFactory(timeout, options))).to.throw(expectedError);
+        expect(() => new (factory(timeout, options))).to.throw(expectedError);
       });
 
       it('should throw if scope is not a valid value', () => {
         const options: CacheOptions = { scope: 'xyz' as any };
         const expectedError = '@cahce Scope type is not suported: xyz.';
-        expect(() => new (classFactory(timeout, options))).to.throw(expectedError);
+        expect(() => new (factory(timeout, options))).to.throw(expectedError);
       });
 
       it('should throw if storage is not a valid value', () => {
         const options: CacheOptions = { storage: 'qwe' as any };
         const expectedError = '@cache Storage type is not supported: qwe.';
-        expect(() => new (classFactory(timeout, options))).to.throw(expectedError);
+        expect(() => new (factory(timeout, options))).to.throw(expectedError);
       });
 
     });
@@ -93,14 +120,14 @@ describe('@cache', () => {
   describe("it shouldn't change method behaivor", () => {
 
     it('should return same value as without decorator', async () => {
-      const instance = new (classFactory(1000));
-      expect(await asyncFunction(42)).to.be.equals(await instance.method(42));
+      const instance = new (factory(1000));
+      expect(await instance.method(42)).to.be.equals(43);
     });
 
     describe('result should be same at multiple calls', () => {
 
       it('for async methods', async () => {
-        const instance = new (classFactory(1000));
+        const instance = new (factory(1000));
         const promises = Array.from({ length: 10 }, () => instance.method(42));
         const values = await Promise.all(promises);
 
@@ -121,7 +148,7 @@ describe('@cache', () => {
 
         it('should return cached value', async () => {
           const timeout = 20;
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           const time = await executionTime(() => instance.method(42));
@@ -130,7 +157,7 @@ describe('@cache', () => {
 
         it('should exprie after given timeout', async () => {
           const timeout = delayTime + 5;
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           await delay(timeout + 1);
@@ -141,7 +168,7 @@ describe('@cache', () => {
 
         it('should not refresh if was call before expire', async () => {
           const timeout = 2 * delayTime;
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           await delay(timeout / 2);
@@ -156,11 +183,11 @@ describe('@cache', () => {
 
       describe('sliding', () => {
 
-        const options: CacheOptions = { expiration: 'sliding', scope: 'class' };
+        const options: CacheOptions = { expiration: 'sliding' };
 
         it('should return cached value', async () => {
           const timeout = 20;
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           const time = await executionTime(() => instance.method(42));
@@ -168,11 +195,11 @@ describe('@cache', () => {
         });
 
         it('should expire after given timeout', async () => {
-          const timeout = delayTime + 5;
-          const instance = new (classFactory(timeout, options));
+          const timeout = delayTime + 2;
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
-          await delay(timeout + 1);
+          await delay(timeout + delayTime + 1);
 
           const time = await executionTime(() => instance.method(42));
           expect(time).to.be.approximately(delayTime, timePrecision);
@@ -180,7 +207,7 @@ describe('@cache', () => {
 
         it('should refresh if was call before expire', async () => {
           const timeout = 3 * delayTime;
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           await delay(timeout / 3);
@@ -203,7 +230,7 @@ describe('@cache', () => {
         const options: CacheOptions = { scope: 'class' };
 
         it('should return cached value for same instance of class', async () => {
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           const time = await executionTime(() => instance.method(42));
@@ -211,7 +238,7 @@ describe('@cache', () => {
         });
 
         it('should return cached value for every instances of class', async () => {
-          const constructor = classFactory(timeout, options);
+          const constructor = factory(timeout, options);
           await new constructor().method(42);
 
           const time = await executionTime(() => new constructor().method(42));
@@ -226,7 +253,7 @@ describe('@cache', () => {
         const options: CacheOptions = { scope: 'instance' };
 
         it('should return cached value for same instance of class', async () => {
-          const instance = new (classFactory(timeout, options));
+          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           const time = await executionTime(() => instance.method(42));
@@ -234,7 +261,7 @@ describe('@cache', () => {
         });
 
         it('should not return cached value for differenct instances of class', async () => {
-          const constructor = classFactory(timeout, options);
+          const constructor = factory(timeout, options);
           await new constructor().method(42);
 
           const time = await executionTime(() => new constructor().method(42));
@@ -251,7 +278,7 @@ describe('@cache', () => {
 
       it('should cache value if storage limit is not reached', async () => {
         const options: CacheOptions = { size: 3 };
-        const instance = new (classFactory(timeout, options));
+        const instance = new (factory(timeout, options));
 
         await Promise.all([instance.method(42), instance.method(24)]);
         const times = await Promise.all([
@@ -262,9 +289,9 @@ describe('@cache', () => {
         times.forEach(time => expect(time).to.be.approximately(0, timePrecision));
       });
 
-      it('should not cache value if storage limit is reached', async () => {
+      it('should remove oldes value if storage limit is reached', async () => {
         const options: CacheOptions = { size: 1 };
-        const instance = new (classFactory(timeout, options));
+        const instance = new (factory(timeout, options));
 
         await Promise.all([
           instance.method(42),
@@ -275,8 +302,8 @@ describe('@cache', () => {
           executionTime(() => instance.method(24)),
         ]);
 
-        expect(firstTime).to.be.approximately(0, timePrecision);
-        expect(secondTime).to.be.approximately(delayTime, timePrecision);
+        expect(firstTime).to.be.approximately(delayTime, timePrecision);
+        expect(secondTime).to.be.approximately(0, timePrecision);
       });
 
     });

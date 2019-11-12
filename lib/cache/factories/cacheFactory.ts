@@ -1,9 +1,8 @@
 import { CacheOptions } from '..';
-import { DEFAULT_OPTIONS, DEFAULT_SCOPE } from '../CacheOptions';
+import { HashService } from '../../utils/hash/hash';
 import { Cache } from '../caches/Cache';
 import { ClassCache } from '../caches/ClassCache';
 import { InstanceCache } from '../caches/InstanceCache';
-import { HashService } from '../hash/hash';
 import { expirationFactory } from './expirationFactory';
 import { storeFactory } from './storeFactory';
 
@@ -14,11 +13,8 @@ const cacheFactories: ReadonlyMap<
   .set('class', classCacheFactory)
   .set('instance', instanceCacheFactory);
 
-export function cacheFactory<K = any>(
-  timeout: number,
-  options: CacheOptions = DEFAULT_OPTIONS,
-): Cache<K> {
-  const scope = options.scope || DEFAULT_SCOPE;
+export function cacheFactory<K = any>(timeout: number, options: CacheOptions): Cache<K> {
+  const { scope } = options;
 
   const factory = cacheFactories.get(scope);
 

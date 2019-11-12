@@ -8,7 +8,7 @@ export class AbsoluteExpiration implements Expiration {
     private readonly timeout: number,
   ) { }
 
-  public add(key: string, clear: () => any): void {
+  public add(key: string, clear: (key: string) => unknown): void {
     if (this.expirations.has(key)) {
       return;
     }
@@ -17,10 +17,10 @@ export class AbsoluteExpiration implements Expiration {
     setTimeout(this.clear(key, clear), this.timeout);
   }
 
-  private clear(key: string, clear: () => any): () => void {
+  private clear(key: string, clear: (key: string) => unknown): () => void {
     return () => {
-      clear();
       this.expirations.delete(key);
+      clear(key);
     };
   }
 

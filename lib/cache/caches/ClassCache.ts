@@ -1,5 +1,5 @@
 import { Expiration } from '../expirations/Expiration';
-import { HashService } from '../hash/hash';
+import { HashService } from '../../utils/hash/hash';
 import { Storage } from '../storages/Storage';
 import { Cache } from './Cache';
 
@@ -11,26 +11,22 @@ export class ClassCache<K = any> implements Cache<K> {
     private readonly hash: HashService,
   ) { }
 
-  public set<V>(key: K, value: V): this {
-    const keyHash = this.hash.hash(key);
+  public async set<V>(key: K, value: V): Promise<void> {
+    const keyHash = this.hash.calculate(key);
 
-    this.storage.set(keyHash, value);
-    this.expiration.add(keyHash, () => this.delete(keyHash));
-
-    return this;
+    await this.storage.set(keyHash, value);
+    this.expiration.add(keyHash, key => this.delete(key));
   }
 
-  public get<V>(key: K): V {
-    const keyHash = this.hash.hash(key);
+  public async get<V>(key: K): Promise<V> {
+    const keyHash = this.hash.calculate(key);
 
-    this.expiration.add(keyHash, () => this.delete(keyHash));
-    return this.storage.get(keyHash);
+    this.expiration.add(keyHash, key => this.delete(key));
+    return this.storage.get<V>(keyHash);
   }
 
-  private delete(key: string): this {
-    this.storage.delete(key);
-
-    return this;
+  private async delete(key: string): Promise<void> {
+    await this.storage.delete(key);
   }
 
 }

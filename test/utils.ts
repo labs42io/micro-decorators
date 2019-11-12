@@ -12,7 +12,7 @@ export function repeat(func: () => void, count: number) {
   return results;
 }
 
-export async function executionTime(func: () => Promise<any>): Promise<number> {
+export async function executionTime(func: () => Promise<unknown>): Promise<number> {
   const begin = Date.now();
   await func();
   return Date.now() - begin;

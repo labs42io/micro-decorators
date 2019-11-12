@@ -1,6 +1,6 @@
 import { ClassType } from '../../interfaces/class';
 import { Expiration } from '../expirations/Expiration';
-import { HashService } from '../hash/hash';
+import { HashService } from '../../utils/hash/hash';
 import { Storage } from '../storages/Storage';
 import { Cache } from './Cache';
 
@@ -14,30 +14,26 @@ export class InstanceCache<K = any> implements Cache<K> {
     private readonly hash: HashService,
   ) { }
 
-  public set<V>(key: K, value: V, instance: ClassType): this {
-    const keyHash = this.hash.hash(key);
+  public async set<V>(key: K, value: V, instance: ClassType): Promise<void> {
+    const keyHash = this.hash.calculate(key);
     const [storage, expiration] = this.instanceData(instance);
 
-    storage.set(keyHash, value);
+    await storage.set(keyHash, value);
     expiration.add(keyHash, () => this.delete(keyHash, instance));
-
-    return this;
   }
 
-  public get<V>(key: K, instance: ClassType): V {
-    const keyHash = this.hash.hash(key);
+  public async get<V>(key: K, instance: ClassType): Promise<V> {
+    const keyHash = this.hash.calculate(key);
     const [storage, expiration] = this.instanceData(instance);
 
     expiration.add(keyHash, () => this.delete(keyHash, instance));
     return storage.get(keyHash);
   }
 
-  private delete(key: string, instance: ClassType): this {
+  private async delete(key: string, instance: ClassType): Promise<void> {
     const [storage] = this.instanceData(instance);
 
-    storage.delete(key);
-
-    return this;
+    await storage.delete(key);
   }
 
   private instanceData(instance: ClassType): [Storage, Expiration] {

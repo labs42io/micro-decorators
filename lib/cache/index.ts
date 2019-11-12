@@ -27,13 +27,13 @@ export function cache(
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const cachedValue = cacheService.get(args, this);
+      const cachedValue = await cacheService.get(args, this);
       if (cachedValue) {
         return cachedValue;
       }
 
       try {
-        const value = method(...args);
+        const value = await method(...args);
         cacheService.set(args, value, this);
         return value;
       } catch (error) {
@@ -57,7 +57,7 @@ function parseParameters(
   if (typeof timeoutOrOptions === 'number') {
     return {
       timeout: timeoutOrOptions,
-      options: { ...DEFAULT_OPTIONS, ...optionsOrVoid || {} },
+      options: { ...DEFAULT_OPTIONS, ...optionsOrVoid },
     };
   }
 

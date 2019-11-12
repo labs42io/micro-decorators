@@ -3,30 +3,48 @@ import { Storage } from './Storage';
 export class MemoryStorage implements Storage {
 
   private readonly storage = new Map<string, any>();
+  private keys: string[];
+  private readonly hasLimit: boolean;
 
-  constructor(private readonly limit?: number) { }
-
-  public set<V>(key: string, value: V): Storage {
-    if (typeof this.limit === 'number' && this.storage.size >= this.limit) {
-      return this;
+  constructor(private readonly limit?: number) {
+    this.hasLimit = typeof this.limit === 'number';
+    if (this.hasLimit) {
+      this.keys = [];
     }
+  }
+
+  public set<V>(key: string, value: V): Promise<void> {
+    this.checkSize(key);
 
     this.storage.set(key, value);
-    return this;
+
+    return Promise.resolve();
   }
 
-  public get<V>(key: string): V {
-    return this.storage.get(key);
+  public get<V>(key: string): Promise<V> {
+    return Promise.resolve(this.storage.get(key));
   }
 
-  public has(key: string): boolean {
-    return this.storage.has(key);
-  }
-
-  public delete(key: string): Storage {
+  public delete(key: string = this.keys[0]): Promise<void> {
     this.storage.delete(key);
 
-    return this;
+    if (this.hasLimit) {
+      this.keys = this.keys.filter(value => value !== key);
+    }
+
+    return Promise.resolve();
+  }
+
+  private checkSize(key: string): void {
+    if (!this.hasLimit) {
+      return;
+    }
+
+    if (this.storage.size >= this.limit) {
+      this.delete();
+    }
+
+    this.keys.push(key);
   }
 
 }
