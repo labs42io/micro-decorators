@@ -62,6 +62,23 @@ describe('@fallback', () => {
       expect(result).to.equal(42);
     });
 
+    it('should return fallback by filtered error from class method', () => {
+      class TestClass {
+        filterError(err: Error) {
+          return err.message.includes('4242');
+        }
+        @fallback(42, { errorFilter(err) { return this.filterError(err); } })
+        test() {
+          throw new Error('4242');
+        }
+      }
+
+      const target = new TestClass();
+      const result = target.test();
+
+      expect(result).to.equal(42);
+    });
+
     it('should throw error', () => {
       class TestClass {
         @fallback(42, { errorFilter: ({ message }: Error) => message === '3131' })
@@ -82,7 +99,7 @@ describe('@fallback', () => {
       class TestClass {
         @fallback(42)
         test() {
-          return new Promise(resolve => resolve(4242));
+          return Promise.resolve(4242);
         }
       }
 
@@ -96,7 +113,7 @@ describe('@fallback', () => {
       class TestClass {
         @fallback(42)
         test() {
-          return new Promise((_, reject) => reject(new Error('4242')));
+          return Promise.reject(new Error('4242'));
         }
       }
 
@@ -111,7 +128,24 @@ describe('@fallback', () => {
         value = 42;
         @fallback(function () { return this.value; })
         test() {
-          return new Promise((_, reject) => reject(new Error('4242')));
+          return Promise.reject(new Error('4242'));
+        }
+      }
+
+      const target = new TestClass();
+      const result = await target.test();
+
+      expect(result).to.equal(42);
+    });
+
+    it('should return fallback by filtered error', async () => {
+      class TestClass {
+        filterError(err: Error) {
+          return err.message.includes('4242');
+        }
+        @fallback(42, { errorFilter(err) { return this.filterError(err); } })
+        test() {
+          return Promise.reject(new Error('4242'));
         }
       }
 
@@ -125,7 +159,7 @@ describe('@fallback', () => {
       class TestClass {
         @fallback(42, { errorFilter: ({ message }: Error) => message === '4242' })
         test() {
-          return new Promise((_, reject) => reject(new Error('4242')));
+          return Promise.reject(new Error('4242'));
         }
       }
 
@@ -139,7 +173,7 @@ describe('@fallback', () => {
       class TestClass {
         @fallback(42, { errorFilter: ({ message }: Error) => message === '3131' })
         test() {
-          return new Promise((_, reject) => reject(new Error('4242')));
+          return Promise.reject(new Error('4242'));
         }
       }
 

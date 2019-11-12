@@ -20,7 +20,7 @@ export function fallback(value: any | ((...args: any[]) => any), options?: Fallb
     descriptor.value = function () {
       try {
         const result = method.call(this, arguments);
-        const isPromiseLike = result instanceof Promise;
+        const isPromiseLike = result && typeof result.then === 'function';
 
         if (isPromiseLike) {
           return fallbackPromise(options, value, result, this);
@@ -29,13 +29,13 @@ export function fallback(value: any | ((...args: any[]) => any), options?: Fallb
         return result;
 
       } catch (err) {
-        const isFiltered = filterError(err, options);
+        const isFiltered = filterError(err, options, this);
 
         if (isFiltered) {
           return getFallbackValue(value, this);
         }
 
-        throw new Error(err.message);
+        throw err;
       }
     };
 
@@ -49,27 +49,25 @@ function fallbackPromise(
   instance: any,
 ): Promise<any> {
 
-  const resolve = (response: any) => {
-    return Promise.resolve(response);
-  };
+  const resolve = (response: any) => Promise.resolve(response);
 
   const reject = (err: any) => {
-    const isFiltered = filterError(err, options);
+    const isFiltered = filterError(err, options, instance);
 
     return isFiltered
       ? Promise.resolve(getFallbackValue(value, instance))
       : Promise.reject(err);
   };
 
-  return Promise.resolve(result).then(resolve, reject);
+  return result.then(resolve, reject);
 }
 
-function filterError(error: Error, options: FallbackOptions): boolean {
+function filterError(error: Error, options: FallbackOptions, instance: any): boolean {
   if (!options || !options.errorFilter) {
     return true;
   }
 
-  return options.errorFilter(error);
+  return options.errorFilter.bind(instance)(error);
 }
 
 function getFallbackValue(value: any | ((...args: any[]) => any), instance: any): any {
