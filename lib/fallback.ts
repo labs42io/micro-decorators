@@ -23,7 +23,7 @@ export function fallback(value: any | ((...args: any[]) => any), options?: Fallb
         const isPromiseLike = result && typeof result.then === 'function';
 
         if (isPromiseLike) {
-          return fallbackPromise(options, value, result, this);
+          return fallbackPromise(options, result, value, this);
         }
 
         return result;
@@ -44,12 +44,10 @@ export function fallback(value: any | ((...args: any[]) => any), options?: Fallb
 
 function fallbackPromise(
   options: FallbackOptions,
+  result: Promise<never>,
   value: any,
-  result: any,
   instance: any,
 ): Promise<any> {
-
-  const resolve = (response: any) => Promise.resolve(response);
 
   const reject = (err: any) => {
     const isFiltered = filterError(err, options, instance);
@@ -59,7 +57,7 @@ function fallbackPromise(
       : Promise.reject(err);
   };
 
-  return result.then(resolve, reject);
+  return result.catch(reject);
 }
 
 function filterError(error: Error, options: FallbackOptions, instance: any): boolean {
