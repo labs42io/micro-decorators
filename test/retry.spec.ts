@@ -133,5 +133,47 @@ describe.only('@retry', () => {
 
       expect(response).to.equal(undefined);
     });
+
+    it('should continue retring if error is filtered as expected', async () => {
+      class TestClass {
+        public retryIndex = 1;
+        @retry(3, {
+          errorFilter: (error) => {
+            return error.message === 'Error 42.';
+          },
+        })
+        async test() {
+          if (this.retryIndex === 1) {
+            return Promise.reject('Error 42.');
+          }
+          return Promise.reject('42');
+        }
+      }
+
+      const target = new TestClass();
+
+      await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
+    });
+
+    it('should stop retring if error is filtered as not expected', async () => {
+      class TestClass {
+        public retryIndex = 1;
+        @retry(3, {
+          errorFilter: (error) => {
+            return error.message === '42';
+          },
+        })
+        async test() {
+          if (this.retryIndex === 1) {
+            return Promise.reject('Error 42.');
+          }
+          return Promise.resolve('Success 42!');
+        }
+      }
+
+      const target = new TestClass();
+
+      await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
+    });
   });
 });
