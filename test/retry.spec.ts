@@ -521,6 +521,25 @@ describe.only('@retry', () => {
             expect(Math.floor(time / 100) * 100).to.equal(100 * (index + 1));
           });
         });
+
+        it('should reject error if type of wait pattern is wrong', async () => {
+          class TestClass {
+            private count = 0;
+            private now;
+            public times = [];
+            @retry(3, {
+              waitPattern: 'wait' as any,
+            })
+            async test() {
+              return Promise.reject(new Error('Error 42.'));
+            }
+          }
+
+          const target = new TestClass();
+
+          // tslint:disable-next-line:max-line-length
+          await expect(target.test()).to.eventually.be.rejectedWith('Option string is not supported for \'waitPattern\'.');
+        });
       });
     });
   });
