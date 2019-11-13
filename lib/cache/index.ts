@@ -1,11 +1,10 @@
 import { CacheOptions, DEFAULT_OPTIONS } from './CacheOptions';
-import { cacheFactory } from './factories/cacheFactory';
+import { cacheFactory } from './caches/factory';
+import { cacheManagerFactory } from './cacheManager/factory';
 
 export { CacheOptions };
 
-interface CacheOptionsAndTimeout extends CacheOptions {
-  timeout: number;
-}
+type TimeoutCacheOptions = CacheOptions & { timeout: number; };
 
 /**
  * Caches the result of a method.
@@ -13,28 +12,30 @@ interface CacheOptionsAndTimeout extends CacheOptions {
  * @param options (optional) caching options.
  */
 export function cache(timeout: number): MethodDecorator;
-export function cache(options: CacheOptionsAndTimeout): MethodDecorator;
+export function cache(options: TimeoutCacheOptions): MethodDecorator;
 export function cache(timeout: number, options?: CacheOptions): MethodDecorator;
 export function cache(
-  timeoutOrOptions: number | CacheOptionsAndTimeout,
+  timeoutOrOptions: number | TimeoutCacheOptions,
   optionsOrVoid: CacheOptions = DEFAULT_OPTIONS,
 ): MethodDecorator {
 
   const { timeout, options } = parseParameters(timeoutOrOptions, optionsOrVoid);
-  const cacheService = cacheFactory(timeout, options);
+  const cacheManager = cacheManagerFactory(timeout, options);
 
   return function (_: any, __: any, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const cachedValue = await cacheService.get(args, this);
-      if (cachedValue) {
-        return cachedValue;
+      const cacheService = cacheManager.get(this);
+      const wasCached = await cacheService.has(args);
+
+      if (wasCached) {
+        return cacheService.get(args);
       }
 
       try {
         const value = await method(...args);
-        cacheService.set(args, value, this);
+        cacheService.set(args, value);
         return value;
       } catch (error) {
         return Promise.reject(error);
@@ -45,15 +46,11 @@ export function cache(
   };
 }
 
-interface Parameters {
-  timeout: number;
-  options: CacheOptions;
-}
-
 function parseParameters(
-  timeoutOrOptions: number | CacheOptionsAndTimeout,
+  timeoutOrOptions: number | TimeoutCacheOptions,
   optionsOrVoid: CacheOptions,
-): Parameters {
+) {
+
   if (typeof timeoutOrOptions === 'number') {
     return {
       timeout: timeoutOrOptions,

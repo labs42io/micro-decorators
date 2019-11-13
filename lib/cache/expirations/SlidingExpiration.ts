@@ -8,15 +8,15 @@ export class SlidingExpiration implements Expiration {
     private readonly timeout: number,
   ) { }
 
-  public add(key: string, clear: (key: string) => unknown): void {
-    this.expirations.has(key) ? this.update(key, clear) : this.addKey(key, clear);
+  public add(key: string, clearCallback: (key: string) => unknown): void {
+    this.expirations.has(key) ? this.update(key, clearCallback) : this.addKey(key, clearCallback);
   }
 
-  private addKey(key: string, clear: (key: string) => unknown): void {
+  private addKey(key: string, clearCallback: (key: string) => unknown): void {
     const timeoutId = setTimeout(
       () => {
         this.expirations.delete(key);
-        clear(key);
+        clearCallback(key);
       },
       this.timeout,
     );
@@ -24,12 +24,12 @@ export class SlidingExpiration implements Expiration {
     this.expirations.set(key, timeoutId as any);
   }
 
-  private update(key: string, clear: (key: string) => unknown): void {
+  private update(key: string, clearCallback: (key: string) => unknown): void {
     const timeoutId = this.expirations.get(key);
     clearTimeout(timeoutId as any);
 
     this.expirations.delete(key);
-    this.addKey(key, clear);
+    this.addKey(key, clearCallback);
   }
 
 }

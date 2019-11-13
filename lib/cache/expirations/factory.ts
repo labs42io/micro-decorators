@@ -1,7 +1,7 @@
 import { CacheOptions } from '..';
-import { AbsoluteExpiration } from '../expirations/AbsoluteExpiration';
-import { Expiration } from '../expirations/Expiration';
-import { SlidingExpiration } from '../expirations/SlidingExpiration';
+import { AbsoluteExpiration } from './AbsoluteExpiration';
+import { Expiration } from './Expiration';
+import { SlidingExpiration } from './SlidingExpiration';
 
 const expirationFactories: ReadonlyMap<'absolute' | 'sliding', (timeout: number) => Expiration> =
   new Map<'absolute' | 'sliding', (timeout: number) => Expiration>()

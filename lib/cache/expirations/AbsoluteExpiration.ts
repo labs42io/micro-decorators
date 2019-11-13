@@ -8,20 +8,18 @@ export class AbsoluteExpiration implements Expiration {
     private readonly timeout: number,
   ) { }
 
-  public add(key: string, clear: (key: string) => unknown): void {
+  public add(key: string, clearCallback: (key: string) => unknown): void {
     if (this.expirations.has(key)) {
       return;
     }
 
     this.expirations.add(key);
-    setTimeout(this.clear(key, clear), this.timeout);
+    setTimeout(() => this.clear(key, clearCallback), this.timeout);
   }
 
-  private clear(key: string, clear: (key: string) => unknown): () => void {
-    return () => {
-      this.expirations.delete(key);
-      clear(key);
-    };
+  private clear(key: string, clearCallback: (key: string) => unknown): void {
+    this.expirations.delete(key);
+    clearCallback(key);
   }
 
 }

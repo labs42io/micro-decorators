@@ -3,36 +3,41 @@ import { Storage } from './Storage';
 export class MemoryStorage implements Storage {
 
   private readonly storage = new Map<string, any>();
-  private keys: string[];
+
   private readonly hasLimit: boolean;
+  private readonly keysStorage: Set<string>;
 
   constructor(private readonly limit?: number) {
     this.hasLimit = typeof this.limit === 'number';
     if (this.hasLimit) {
-      this.keys = [];
+      this.keysStorage = new Set<string>();
     }
   }
 
-  public set<V>(key: string, value: V): Promise<void> {
+  public async set<V>(key: string, value: V): Promise<this> {
     this.checkSize(key);
 
     this.storage.set(key, value);
 
-    return Promise.resolve();
+    return this;
   }
 
-  public get<V>(key: string): Promise<V> {
-    return Promise.resolve(this.storage.get(key));
+  public async get<V>(key: string): Promise<V> {
+    return this.storage.get(key);
   }
 
-  public delete(key: string = this.keys[0]): Promise<void> {
+  public async has(key: string): Promise<boolean> {
+    return this.storage.has(key);
+  }
+
+  public async delete(key: string): Promise<this> {
     this.storage.delete(key);
 
     if (this.hasLimit) {
-      this.keys = this.keys.filter(value => value !== key);
+      this.keysStorage.delete(key);
     }
 
-    return Promise.resolve();
+    return this;
   }
 
   private checkSize(key: string): void {
@@ -41,10 +46,10 @@ export class MemoryStorage implements Storage {
     }
 
     if (this.storage.size >= this.limit) {
-      this.delete();
+      this.delete(this.keysStorage.keys().next().value);
     }
 
-    this.keys.push(key);
+    this.keysStorage.add(key);
   }
 
 }

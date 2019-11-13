@@ -1,5 +1,6 @@
 export interface Storage {
-  set<V>(key: string, value: V): Promise<void>;
+  set<V>(key: string, value: V): Promise<this>;
   get<V>(key: string): Promise<V>;
-  delete(key: string): Promise<void>;
+  has(key: string): Promise<boolean>;
+  delete(key: string): Promise<this>;
 }

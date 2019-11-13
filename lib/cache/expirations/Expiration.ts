@@ -1,3 +1,3 @@
 export interface Expiration {
-  add(key: string, clear: (key: string) => unknown): void;
+  add(key: string, clearCallback: (key: string) => unknown): void;
 }

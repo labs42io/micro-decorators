@@ -13,6 +13,6 @@ class Service {
 
 const service = new Service();
 
-service.asyncMethod(3).then(res => console.log(res)); // first call => no cache
-service.asyncMethod(3).then(res => console.log(res)); // second call => from cache
-service.asyncMethod(4).then(res => console.log(res)); // first call => no cache
+service.asyncMethod(3).then(res => console.log(res)); // no cache
+service.asyncMethod(3).then(res => console.log(res)); // from cache
+service.asyncMethod(4).then(res => console.log(res)); // no cache because another argument

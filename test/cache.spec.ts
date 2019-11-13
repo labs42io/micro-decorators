@@ -98,19 +98,21 @@ describe('@cache', () => {
       it('should throw if expiration is not a valid value', () => {
         const options: CacheOptions = { expiration: 'abc' as any };
         const expectedError = '@cache Expiration type is not supported: abc.';
-        expect(() => new (factory(timeout, options))).to.throw(expectedError);
+        const instance = new (factory(timeout, options));
+        expect(instance.method(42)).to.be.rejectedWith(expectedError);
       });
 
       it('should throw if scope is not a valid value', () => {
         const options: CacheOptions = { scope: 'xyz' as any };
-        const expectedError = '@cahce Scope type is not suported: xyz.';
+        const expectedError = '@cache invalid scope option: xyz.';
         expect(() => new (factory(timeout, options))).to.throw(expectedError);
       });
 
       it('should throw if storage is not a valid value', () => {
         const options: CacheOptions = { storage: 'qwe' as any };
         const expectedError = '@cache Storage type is not supported: qwe.';
-        expect(() => new (factory(timeout, options))).to.throw(expectedError);
+        const instance = new (factory(timeout, options));
+        expect(instance.method(42)).to.be.rejectedWith(expectedError);
       });
 
     });
@@ -167,7 +169,7 @@ describe('@cache', () => {
         });
 
         it('should not refresh if was call before expire', async () => {
-          const timeout = delayTime + 1;
+          const timeout = delayTime + 2;
           const instance = new (factory(timeout, options));
           await instance.method(42);
 
@@ -243,6 +245,18 @@ describe('@cache', () => {
 
           const time = await executionTime(() => new constructor().method(42));
           expect(time).to.be.approximately(0, timePrecision);
+        });
+
+        it('should not use cached value if is another class', async () => {
+          const firstConstructor = factory(timeout, options);
+          const secondConstructor = factory(timeout, options);
+
+          const firstInstance = new firstConstructor();
+          const secondInstance = new secondConstructor();
+
+          await firstInstance.method(42);
+          const time = await executionTime(() => secondInstance.method(42));
+          expect(time).to.be.gte(delayTime);
         });
 
       });
