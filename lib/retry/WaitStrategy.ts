@@ -1,27 +1,39 @@
 import { WaitPattern } from './RetryOptions';
 
-export function waitStrategy(attemptIndex: number, waitPattern: WaitPattern): Promise<void> {
-  const patternType = Array.isArray(waitPattern)
-    ? 'array'
-    : typeof waitPattern;
+export class WaitStrategy {
 
-  switch (patternType) {
-    case 'number':
-      return wait(waitPattern as number);
-    case 'array':
-      const attemptValues = waitPattern as number[];
-      const shouldWaitValue = attemptIndex > attemptValues.length
-        ? attemptValues[attemptValues.length - 1]
-        : attemptValues[attemptIndex];
+  constructor(
+    private readonly waitPattern: WaitPattern,
+  ) { }
 
-      return wait(shouldWaitValue);
-    case 'function':
-      return wait((waitPattern as Function)(attemptIndex));
-    default:
-      throw new Error(`Option ${patternType} is not supported for 'waitPattern'.`);
+  public wait(index: number, instance: any): Promise<void> {
+    if (!this.waitPattern) {
+      return Promise.resolve();
+    }
+
+    const timeout = this.getTimeout(index, instance) || 0;
+    return new Promise(resolve => setTimeout(resolve, timeout));
   }
-}
 
-function wait(timeout: number = 0): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, timeout));
+  private getTimeout(index: number, instance: any): number {
+    const patternType = Array.isArray(this.waitPattern)
+      ? 'array'
+      : typeof this.waitPattern;
+
+    switch (patternType) {
+      case 'number':
+        return this.waitPattern as number;
+      case 'array':
+        const values = this.waitPattern as number[];
+        const timeout = index > values.length
+          ? values[values.length - 1]
+          : values[index];
+
+        return timeout;
+      case 'function':
+        return (this.waitPattern as Function)(index);
+      default:
+        throw new Error(`Option ${patternType} is not supported for 'waitPattern'.`);
+    }
+  }
 }

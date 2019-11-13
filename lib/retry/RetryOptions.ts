@@ -31,5 +31,14 @@ export type RetryOptions = {
 
 export type WaitPattern = number | number[] | ((attempt: number) => number);
 
+export type MethodOptions = {
+  method: Function,
+  instance: any,
+  args: any,
+};
+
 export const DEFAULT_ON_ERROR = 'throw';
 export const DEFAULT_ERROR = 'Retry failed.';
+export const DEFAULT_OPTIONS: RetryOptions = {
+  errorFilter: () => { return true; },
+};
