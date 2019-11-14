@@ -1,7 +1,9 @@
 import { raiseStrategy } from '../utils';
-import { CircuitOptions, DEFAULT_ON_ERROR, DEFAULT_OPTIONS } from './CircuitOptions';
-import { circuitStateStorageFactory } from './factories/circuitStateStorageFactory';
-import { isPromise } from '../utils/isPromiseLike';
+import { isPromise } from '../utils/isPromise';
+import { CircuitOptions, DEFAULT_OPTIONS } from './CircuitOptions';
+import { CircuitStateFactory } from './CircuitState/factory';
+import { CircuitStateStorageFactory } from './CircuitStateStorage/factory';
+import { PolicyFactory } from './Policy/factory';
 
 export { CircuitOptions };
 
@@ -22,8 +24,20 @@ export function circuit(
   options: CircuitOptions = DEFAULT_OPTIONS,
 ): MethodDecorator {
 
-  const circuitStateStorage = circuitStateStorageFactory(threshold, timeout, options);
-  const raise = raiseStrategy(options, DEFAULT_ON_ERROR);
+  const {
+    interval,
+    onError,
+    errorFilter = () => true,
+    scope = 'class',
+    policy = 'errors',
+  } = options;
+
+  const policyFactory = new PolicyFactory(threshold, policy);
+  const cirucitStateFactory =
+    new CircuitStateFactory(timeout, interval, errorFilter, policyFactory);
+  const circuitStateStorage = new CircuitStateStorageFactory(scope, cirucitStateFactory).create();
+
+  const raise = raiseStrategy({ onError }, 'throw');
 
   return function (_: any, propertyKey: any, descriptor: PropertyDescriptor) {
     const method: (...args: any[]) => any = descriptor.value;

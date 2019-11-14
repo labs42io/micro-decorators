@@ -1,15 +1,18 @@
 import { CircuitState } from '../CircuitState/CircuitState';
+import { CircuitStateFactory } from '../CircuitState/factory';
 import { CircuitStateStorage } from './CircuitStateStorage';
 
-export class ClassCircuit implements CircuitStateStorage {
+export class ClassCircuitStateStorage implements CircuitStateStorage {
 
-  private readonly circuitState: CircuitState;
+  private circuitState: CircuitState = null;
 
-  constructor(circuitStateFunction: () => CircuitState) {
-    this.circuitState = circuitStateFunction();
-  }
+  constructor(private readonly circuitStateFactory: CircuitStateFactory) { }
 
   public get(): CircuitState {
+    if (!this.circuitState) {
+      this.circuitState = this.circuitStateFactory.create();
+    }
+
     return this.circuitState;
   }
 

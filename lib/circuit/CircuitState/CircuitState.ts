@@ -3,7 +3,7 @@ import { Policy } from '../Policy/Policy';
 export class CircuitState {
 
   private state: 'open' | 'close' | 'half-open' = 'open';
-  private removeExecutionsTimers: number[] = [];
+  private timers: number[] = [];
 
   constructor(
     private readonly timeout: number,
@@ -21,7 +21,11 @@ export class CircuitState {
     const type = isError ? 'error' : 'success';
 
     if (this.state === 'half-open') {
-      isError ? this.close() : this.open();
+      if (isError) {
+        this.close();
+      } else {
+        this.open();
+      }
     }
 
     this.policy.addExecution(type);
@@ -50,15 +54,15 @@ export class CircuitState {
       this.interval,
     );
 
-    this.removeExecutionsTimers.push(timer as any);
+    this.timers.push(timer as any);
   }
 
   private open() {
     this.state = 'open';
     this.policy.reset();
 
-    this.removeExecutionsTimers.forEach(timer => clearTimeout(timer as any));
-    this.removeExecutionsTimers = [];
+    this.timers.forEach(timer => clearTimeout(timer as any));
+    this.timers = [];
   }
 
   private close() {

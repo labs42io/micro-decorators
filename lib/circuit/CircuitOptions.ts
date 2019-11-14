@@ -41,15 +41,10 @@ export type CircuitOptions = {
   errorFilter?: (err: Error) => boolean,
 };
 
-export const DEFAULT_INTERVAL = undefined;
-export const DEFAULT_POLICY = 'errors';
-export const DEFAULT_ON_ERROR = 'throw';
-export const DEFAULT_SCOPE = 'class';
-export const DEFAULT_ERROR_FILTER = () => true;
 export const DEFAULT_OPTIONS: Readonly<CircuitOptions> = {
-  interval: DEFAULT_INTERVAL,
-  policy: DEFAULT_POLICY,
-  onError: DEFAULT_ON_ERROR,
-  scope: DEFAULT_SCOPE,
-  errorFilter: DEFAULT_ERROR_FILTER,
+  interval: undefined,
+  policy: 'errors',
+  onError: 'throw',
+  scope: 'class',
+  errorFilter: () => true,
 };
