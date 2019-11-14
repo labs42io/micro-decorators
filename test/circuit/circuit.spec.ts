@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
-import { circuit, CircuitOptions } from '../lib';
-import { delay, repeat } from './utils';
+import { circuit, CircuitOptions } from '../../lib';
+import { delay, repeat } from '../utils';
 
 describe('@circuit', () => {
 
@@ -144,11 +144,12 @@ describe('@circuit', () => {
       expect(() => new (factory(100, 1000, options))).to.throw(expectedMessage);
     });
 
-    it('should thow if policy does not have a valid value', () => {
+    it('should throw if policy does not have a valid value', () => {
       const options: CircuitOptions = { policy: 'def' as any };
+      const instance = new (factory(100, 1000, options));
 
       const expectedMessage = '@circuit unsuported policy type: def';
-      expect(() => new (factory(100, 1000, options))).to.throw(expectedMessage);
+      expect(() => instance.sqrt()).to.throw(expectedMessage);
     });
 
     it('should throw if scope does not have a valid value', () => {
