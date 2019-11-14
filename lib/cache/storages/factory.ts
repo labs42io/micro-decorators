@@ -1,19 +1,26 @@
-import { CacheOptions } from '..';
+import { Factory } from '../../interfaces/factory';
 import { MemoryStorage } from './MemoryStorage';
 import { Storage } from './Storage';
 
-const storeFactories: ReadonlyMap<'memory', (limit: number) => Storage> =
-  new Map<'memory', (limit: number) => Storage>()
-    .set('memory', limit => new MemoryStorage(limit));
+export class StorageFactory implements Factory<Storage> {
 
-export function storageFactory(options: CacheOptions): Storage {
-  const { size, storage } = options;
+  constructor(
+    private readonly limit: number,
+    private readonly storage: 'memory',
+  ) { }
 
-  const factory = storeFactories.get(storage);
+  public create(): Storage {
+    switch (this.storage) {
+      case 'memory':
+        return this.memoryStorage();
 
-  if (!factory) {
-    throw new Error(`@cache Storage type is not supported: ${storage}.`);
+      default:
+        throw new Error(`@cache Storage type is not supported: ${this.storage}.`);
+    }
   }
 
-  return factory(size);
+  private memoryStorage(): MemoryStorage {
+    return new MemoryStorage(this.limit);
+  }
+
 }

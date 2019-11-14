@@ -1,21 +1,34 @@
-import { CacheOptions } from '..';
+import { Factory } from '../../interfaces/factory';
 import { AbsoluteExpiration } from './AbsoluteExpiration';
 import { Expiration } from './Expiration';
 import { SlidingExpiration } from './SlidingExpiration';
 
-const expirationFactories: ReadonlyMap<'absolute' | 'sliding', (timeout: number) => Expiration> =
-  new Map<'absolute' | 'sliding', (timeout: number) => Expiration>()
-    .set('absolute', timeout => new AbsoluteExpiration(timeout))
-    .set('sliding', timeout => new SlidingExpiration(timeout));
+export class ExpirationFactory implements Factory<Expiration> {
 
-export function expirationFactory(timeout: number, options: CacheOptions): Expiration {
-  const { expiration } = options;
+  constructor(
+    private readonly timeout: number,
+    private readonly expiration: 'absolute' | 'sliding',
+  ) { }
 
-  const factory = expirationFactories.get(expiration);
+  public create(): Expiration {
+    switch (this.expiration) {
+      case 'absolute':
+        return this.absoluteExpirtation();
 
-  if (!factory) {
-    throw new Error(`@cache Expiration type is not supported: ${expiration}.`);
+      case 'sliding':
+        return this.slidingExpiration();
+
+      default:
+        throw new Error(`@cache Expiration type is not supported: ${this.expiration}.`);
+    }
   }
 
-  return factory(timeout);
+  private absoluteExpirtation(): AbsoluteExpiration {
+    return new AbsoluteExpiration(this.timeout);
+  }
+
+  private slidingExpiration(): SlidingExpiration {
+    return new SlidingExpiration(this.timeout);
+  }
+
 }

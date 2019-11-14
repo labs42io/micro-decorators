@@ -1,13 +1,22 @@
+import { Factory } from '../../interfaces/factory';
 import { HashService } from '../../utils/hash';
-import { CacheOptions } from '../CacheOptions';
-import { expirationFactory } from '../expirations/factory';
-import { storageFactory } from '../storages/factory';
+import { ExpirationFactory } from '../expirations/factory';
+import { StorageFactory } from '../storages/factory';
 import { Cache } from './Cache';
 
-export function cacheFactory<K = any>(timeout: number, options: CacheOptions): Cache<K> {
-  const storage = storageFactory(options);
-  const expiration = expirationFactory(timeout, options);
-  const hash = new HashService();
+export class CacheFactory<K = any> implements Factory<Cache<K>> {
 
-  return new Cache<K>(storage, expiration, hash);
+  constructor(
+    private readonly hash: HashService,
+    private readonly expirationFactory: ExpirationFactory,
+    private readonly storageFactory: StorageFactory,
+  ) { }
+
+  public create(): Cache<K> {
+    const storage = this.storageFactory.create();
+    const expiration = this.expirationFactory.create();
+
+    return new Cache(storage, expiration, this.hash);
+  }
+
 }

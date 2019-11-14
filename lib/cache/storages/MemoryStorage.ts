@@ -4,18 +4,10 @@ export class MemoryStorage implements Storage {
 
   private readonly storage = new Map<string, any>();
 
-  private readonly hasLimit: boolean;
-  private readonly keysStorage: Set<string>;
-
-  constructor(private readonly limit?: number) {
-    this.hasLimit = typeof this.limit === 'number';
-    if (this.hasLimit) {
-      this.keysStorage = new Set<string>();
-    }
-  }
+  constructor(private readonly limit?: number) { }
 
   public async set<V>(key: string, value: V): Promise<this> {
-    this.checkSize(key);
+    this.checkSize();
 
     this.storage.set(key, value);
 
@@ -33,23 +25,13 @@ export class MemoryStorage implements Storage {
   public async delete(key: string): Promise<this> {
     this.storage.delete(key);
 
-    if (this.hasLimit) {
-      this.keysStorage.delete(key);
-    }
-
     return this;
   }
 
-  private checkSize(key: string): void {
-    if (!this.hasLimit) {
-      return;
+  private checkSize(): void {
+    if (typeof this.limit === 'number' && this.storage.size >= this.limit) {
+      this.delete(this.storage.keys().next().value);
     }
-
-    if (this.storage.size >= this.limit) {
-      this.delete(this.keysStorage.keys().next().value);
-    }
-
-    this.keysStorage.add(key);
   }
 
 }

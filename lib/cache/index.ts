@@ -1,6 +1,9 @@
 import { CacheOptions, DEFAULT_OPTIONS } from './CacheOptions';
-import { cacheFactory } from './caches/factory';
-import { cacheManagerFactory } from './cacheManager/factory';
+import { ExpirationFactory } from './expirations/factory';
+import { StorageFactory } from './storages/factory';
+import { CacheFactory } from './caches/factory';
+import { HashService } from '../utils/hash';
+import { CacheProviderFactory } from './cacheProvider/factory';
 
 export { CacheOptions };
 
@@ -20,26 +23,27 @@ export function cache(
 ): MethodDecorator {
 
   const { timeout, options } = parseParameters(timeoutOrOptions, optionsOrVoid);
-  const cacheManager = cacheManagerFactory(timeout, options);
+
+  const hashService = new HashService();
+  const expirationFactory = new ExpirationFactory(timeout, options.expiration);
+  const storageFactory = new StorageFactory(options.size, options.storage);
+  const cacheFactory = new CacheFactory(hashService, expirationFactory, storageFactory);
+  const cacheProvider = new CacheProviderFactory(options.scope, cacheFactory).create();
 
   return function (_: any, __: any, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const cacheService = cacheManager.get(this);
-      const wasCached = await cacheService.has(args);
+      const cacheService = cacheProvider.get(this);
+      const isCached = await cacheService.has(args);
 
-      if (wasCached) {
+      if (isCached) {
         return cacheService.get(args);
       }
 
-      try {
-        const value = await method(...args);
-        cacheService.set(args, value);
-        return value;
-      } catch (error) {
-        return Promise.reject(error);
-      }
+      const value = await method(...args);
+      cacheService.set(args, value);
+      return value;
     };
 
     return descriptor;

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
-import { cache, CacheOptions } from '../lib';
-import { delay, executionTime } from './utils';
+import { cache, CacheOptions } from '../../lib';
+import { delay, executionTime } from '../utils';
 
 describe('@cache', () => {
 
