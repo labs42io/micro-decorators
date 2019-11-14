@@ -360,6 +360,28 @@ describe.only('@retry', () => {
 
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
         });
+
+        // tslint:disable-next-line:max-line-length
+        it('should work if the method fails 2 times and succeeds only on the third time.', async () => {
+          class TestClass {
+            public count = 1;
+            @retry(3)
+            async test() {
+              if (this.count === 3) {
+                return Promise.resolve('Success 42!');
+              }
+
+              this.count += 1;
+              return Promise.reject(new Error('Error 42.'));
+            }
+          }
+
+          const target = new TestClass();
+          const response = await target.test();
+
+          expect(response).to.equal('Success 42!');
+          expect(target.count).to.equal(3);
+        });
       });
 
       describe('When method should return a specific error.', () => {
@@ -524,8 +546,6 @@ describe.only('@retry', () => {
 
         it('should reject error if type of wait pattern is wrong', async () => {
           class TestClass {
-            private count = 0;
-            private now;
             public times = [];
             @retry(3, {
               waitPattern: 'wait' as any,

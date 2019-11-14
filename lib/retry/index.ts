@@ -35,7 +35,7 @@ export function retry(attempts: number, options?: RetryOptions): any {
           return response.catch((err) => {
             retryCount += 1;
 
-            return waitStrategy.wait(retryCount - 1, methodOptions.instance)
+            return waitStrategy.wait(retryCount - 1)
               .then(() => retryer.retry(err, attempts, retryCount));
           });
         }

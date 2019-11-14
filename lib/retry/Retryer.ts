@@ -1,5 +1,5 @@
 import { raiseStrategy } from '../utils';
-import { DEFAULT_ERROR, DEFAULT_ON_ERROR, MethodOptions, RetryOptions } from './RetryOptions';
+import { DEFAULT_ERROR, MethodOptions, RetryOptions } from './RetryOptions';
 
 export class Retryer {
   constructor(
@@ -19,7 +19,7 @@ export class Retryer {
   }
 
   private error(): void | Promise<never> {
-    const raise = raiseStrategy({ onError: this.options.onError }, DEFAULT_ON_ERROR);
+    const raise = raiseStrategy(this.options);
     return raise(new Error(DEFAULT_ERROR));
   }
 }

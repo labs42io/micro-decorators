@@ -1,10 +1,9 @@
+import { RetryOptions } from '../retry';
 
-type StrategyOptions = {
-  onError?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync';
-};
+const DEFAULT_ON_ERROR = 'throw';
 
-export function raiseStrategy(options: StrategyOptions, defaultStrategy: string) {
-  const value = options && options.onError || defaultStrategy;
+export function raiseStrategy(options: RetryOptions) {
+  const value = options && options.onError || DEFAULT_ON_ERROR;
 
   switch (value) {
     case 'reject':
