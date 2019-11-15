@@ -1,6 +1,6 @@
 export interface Policy {
-  addExecution(type: 'success' | 'error'): this;
-  removeExecution(type: 'success' | 'error'): this;
+  registerCall(type: 'success' | 'error'): this;
+  deleteCallData(type: 'success' | 'error'): this;
   reset(): this;
   allowExecution(): boolean;
 }

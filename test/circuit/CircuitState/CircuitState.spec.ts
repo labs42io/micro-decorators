@@ -128,20 +128,20 @@ describe('@circuit CircuitState', () => {
 
     });
 
-    describe('should call policy.addExecution', () => {
+    describe('should call policy.registerCall', () => {
 
-      it('should call policy.addExecution with "success" if is success execution', () => {
+      it('should call policy.registerCall with "success" if is success execution', () => {
         service.register();
 
-        expect(policyStub.addExecution.calledOnce).to.be.true;
-        expect(policyStub.addExecution.calledWith('success')).to.be.true;
+        expect(policyStub.registerCall.calledOnce).to.be.true;
+        expect(policyStub.registerCall.calledWith('success')).to.be.true;
       });
 
-      it('should call policy.addExecution with "error" if is error execution', () => {
+      it('should call policy.registerCall with "error" if is error execution', () => {
         service.register(new Error('42'));
 
-        expect(policyStub.addExecution.calledOnce).to.be.true;
-        expect(policyStub.addExecution.calledWith('error')).to.be.true;
+        expect(policyStub.registerCall.calledOnce).to.be.true;
+        expect(policyStub.registerCall.calledWith('error')).to.be.true;
       });
 
     });
@@ -164,7 +164,7 @@ describe('@circuit CircuitState', () => {
 
         await delay(interval);
 
-        expect(policyStub.removeExecution.calledOnce).to.be.true;
+        expect(policyStub.deleteCallData.calledOnce).to.be.true;
       });
 
       it('should became close if state is open and policy don\'t allow execution', async () => {
