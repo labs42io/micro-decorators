@@ -1,29 +1,25 @@
-import * as chai from 'chai';
+import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 import { CircuitState } from '../../../lib/circuit/CircuitState/CircuitState';
+import { ErrorsPolicy } from '../../../lib/circuit/Policy/ErrorsPolicy';
 import { Policy } from '../../../lib/circuit/Policy/Policy';
-import { SpyObj, delay } from '../../utils';
-
-const expect = chai.expect;
+import { delay } from '../../utils';
 
 describe('@circuit CircuitState', () => {
 
   const timeout = 5;
   const interval = undefined;
-  let errorFilter: ChaiSpies.SpyFunc0Proxy<boolean>;
-  let policySpy: SpyObj<Policy>;
+  let errorFilterStub: sinon.SinonStub<[Error], boolean>;
+  let policyStub: sinon.SinonStubbedInstance<Policy>;
   let service: CircuitState;
 
   beforeEach(() => {
-    errorFilter = chai.spy('error filter function', () => true);
-    policySpy = {
-      addExecution: chai.spy('policy spy add execution', () => policySpy),
-      removeExecution: chai.spy('policy spy remove execution', () => policySpy),
-      reset: chai.spy('policy spy reset', () => policySpy),
-      allowExecution: chai.spy('policy spy allow execution', () => true),
-    };
+    errorFilterStub = sinon.stub().returns(true) as any;
+    policyStub = sinon.createStubInstance(ErrorsPolicy);
+    policyStub.allowExecution.returns(true);
 
-    service = new CircuitState(timeout, interval, errorFilter, policySpy);
+    service = new CircuitState(timeout, interval, errorFilterStub, policyStub);
   });
 
   describe('constructor', () => {
@@ -65,7 +61,7 @@ describe('@circuit CircuitState', () => {
     it('should call errorFilter function to check if error should be counted', () => {
       service.register(new Error('42'));
 
-      expect(errorFilter).to.have.been.called.once;
+      expect(errorFilterStub.calledOnce).to.be.true;
     });
 
     describe('if state is half-open', () => {
@@ -87,8 +83,7 @@ describe('@circuit CircuitState', () => {
       });
 
       it('should became open if was called with error but errorFilter returned false', () => {
-        errorFilter = chai.spy.returns(false);
-        const service = new CircuitState(timeout, undefined, errorFilter, policySpy);
+        errorFilterStub.returns(false);
 
         service['state'] = 'half-open';
 
@@ -106,7 +101,7 @@ describe('@circuit CircuitState', () => {
 
         service.register();
 
-        expect(policySpy.reset).to.have.been.called.once;
+        expect(policyStub.reset.calledOnce).to.be.true;
       });
 
       it('should clear timeouts', () => {
@@ -115,7 +110,7 @@ describe('@circuit CircuitState', () => {
 
         service.register();
 
-        expect(service['timers']).to.be.an('array').and.have.property('length', 0);
+        expect(service['timers']).to.be.an('array').and.have.length(0);
       });
 
     });
@@ -138,15 +133,15 @@ describe('@circuit CircuitState', () => {
       it('should call policy.addExecution with "success" if is success execution', () => {
         service.register();
 
-        expect(policySpy.addExecution).to.have.been.called.once;
-        expect(policySpy.addExecution).to.have.been.called.with('success');
+        expect(policyStub.addExecution.calledOnce).to.be.true;
+        expect(policyStub.addExecution.calledWith('success')).to.be.true;
       });
 
       it('should call policy.addExecution with "error" if is error execution', () => {
         service.register(new Error('42'));
 
-        expect(policySpy.addExecution).to.have.been.called.once;
-        expect(policySpy.addExecution).to.have.been.called.with('error');
+        expect(policyStub.addExecution.calledOnce).to.be.true;
+        expect(policyStub.addExecution.calledWith('error')).to.be.true;
       });
 
     });
@@ -156,7 +151,7 @@ describe('@circuit CircuitState', () => {
       const interval = 3;
       let service: CircuitState;
 
-      beforeEach(() => service = new CircuitState(timeout, interval, errorFilter, policySpy));
+      beforeEach(() => service = new CircuitState(timeout, interval, errorFilterStub, policyStub));
 
       it('should add timer data to timers array', () => {
         service.register();
@@ -169,25 +164,18 @@ describe('@circuit CircuitState', () => {
 
         await delay(interval);
 
-        expect(policySpy.removeExecution).to.have.been.called.once;
+        expect(policyStub.removeExecution.calledOnce).to.be.true;
       });
 
       it('should became close if state is open and policy don\'t allow execution', async () => {
-        let index = 0;
-        policySpy = {
-          ...policySpy,
-          allowExecution: chai.spy(
-            'policy spy allow execution',
-            () => { index += 1; return index === 1; },
-          ),
-        };
-        const service = new CircuitState(timeout, interval, errorFilter, policySpy);
+        policyStub.allowExecution.returns(true);
 
         service.register();
+        policyStub.allowExecution.returns(false);
 
         await delay(interval);
 
-        expect(policySpy.allowExecution).to.have.been.called.twice;
+        expect(policyStub.allowExecution.calledTwice).to.be.true;
         expect(service['state']).to.be.equals('close');
       });
 
@@ -196,15 +184,11 @@ describe('@circuit CircuitState', () => {
     it('should call policy.allowExecution after register call', () => {
       service.register();
 
-      expect(policySpy.allowExecution).to.have.been.called.once;
+      expect(policyStub.allowExecution.calledOnce).to.be.true;
     });
 
-    it('should became close after register if policy return allowExecution false', () => {
-      policySpy = {
-        ...policySpy,
-        allowExecution: chai.spy('policy spy allow execution', () => false),
-      };
-      const service = new CircuitState(timeout, interval, errorFilter, policySpy);
+    it('should became close after register if policy don\'t allow execution', () => {
+      policyStub.allowExecution.returns(false);
 
       service.register();
 

@@ -13,22 +13,14 @@ export class PolicyFactory implements Factory<Policy> {
   public create(): Policy {
     switch (this.policy) {
       case 'errors':
-        return this.errorsPolicy();
+        return new ErrorsPolicy(this.threshold);
 
       case 'rate':
-        return this.ratePolicy();
+        return new RatePolicy(this.threshold);
 
       default:
         throw new Error(`@circuit unsuported policy type: ${this.policy}`);
     }
-  }
-
-  private errorsPolicy(): ErrorsPolicy {
-    return new ErrorsPolicy(this.threshold);
-  }
-
-  private ratePolicy(): RatePolicy {
-    return new RatePolicy(this.threshold);
   }
 
 }

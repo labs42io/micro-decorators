@@ -11,9 +11,3 @@ export function repeat(func: () => void, count: number) {
 
   return results;
 }
-
-export type SpyObj<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => any
-  ? ChaiSpies.SpyFunc0Proxy<ReturnType<T[K]>>
-  : T[K];
-};

@@ -15,29 +15,17 @@ export class CircuitStateStorageFactory implements Factory<CircuitStateStorage> 
   public create(): CircuitStateStorage {
     switch (this.scope) {
       case 'args-hash':
-        return this.argumentsCircuitStateStorage();
+        return new ArgumentsCircuitStateStorage(this.circuitStateFactory);
 
       case 'class':
-        return this.classCircuitStateStorage();
+        return new ClassCircuitStateStorage(this.circuitStateFactory);
 
       case 'instance':
-        return this.instanceCircuitStateStorage();
+        return new InstanceCircuitStateStorage(this.circuitStateFactory);
 
       default:
         throw new Error(`@circuit unsuported scope option: ${this.scope}`);
     }
-  }
-
-  private argumentsCircuitStateStorage(): ArgumentsCircuitStateStorage {
-    return new ArgumentsCircuitStateStorage(this.circuitStateFactory);
-  }
-
-  private classCircuitStateStorage(): ClassCircuitStateStorage {
-    return new ClassCircuitStateStorage(this.circuitStateFactory);
-  }
-
-  private instanceCircuitStateStorage(): InstanceCircuitStateStorage {
-    return new InstanceCircuitStateStorage(this.circuitStateFactory);
   }
 
 }

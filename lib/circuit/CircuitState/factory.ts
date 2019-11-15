@@ -4,7 +4,6 @@ import { CircuitState } from './CircuitState';
 
 export class CircuitStateFactory implements Factory<CircuitState> {
 
-
   constructor(
     private readonly timeout: number,
     private readonly interval: number,

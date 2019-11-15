@@ -1,5 +1,5 @@
 import { raiseStrategy } from '../utils';
-import { isPromise } from '../utils/isPromise';
+import { isPromiseLike } from '../utils/isPromiseLike';
 import { CircuitOptions, DEFAULT_OPTIONS } from './CircuitOptions';
 import { CircuitStateFactory } from './CircuitState/factory';
 import { CircuitStateStorageFactory } from './CircuitStateStorage/factory';
@@ -24,13 +24,8 @@ export function circuit(
   options: CircuitOptions = DEFAULT_OPTIONS,
 ): MethodDecorator {
 
-  const {
-    interval,
-    onError,
-    errorFilter = () => true,
-    scope = 'class',
-    policy = 'errors',
-  } = options;
+  const { interval, onError, errorFilter = () => true, scope = 'class', policy = 'errors' }
+    = options;
 
   const policyFactory = new PolicyFactory(threshold, policy);
   const cirucitStateFactory =
@@ -65,10 +60,11 @@ export function circuit(
       try {
         const result = method.apply(this, args);
 
-        if (isPromise(result)) {
-          return result
-            .then(data => successRegister(data))
-            .catch(error => errorRegister(error) as any);
+        if (isPromiseLike(result)) {
+          return result.then(
+            data => successRegister(data),
+            error => errorRegister(error) as any,
+          );
         }
 
         return successRegister(result);
