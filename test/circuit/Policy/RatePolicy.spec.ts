@@ -25,12 +25,12 @@ describe('@circuit RatePolicy', () => {
 
   });
 
-  describe('addExecution', () => {
+  describe('registerCall', () => {
 
     it('should increase number of errors with 1 if is error', () => {
       const initialErrors = errors();
 
-      service.addExecution('error');
+      service.registerCall('error');
 
       expect(errors()).to.be.equals(initialErrors + 1);
     });
@@ -38,7 +38,7 @@ describe('@circuit RatePolicy', () => {
     it('should not increase number of errors if is success execution', () => {
       const initialErrors = errors();
 
-      service.addExecution('success');
+      service.registerCall('success');
 
       expect(errors()).to.be.equals(initialErrors);
     });
@@ -46,7 +46,7 @@ describe('@circuit RatePolicy', () => {
     it('should increase total calls with 1 if is error', () => {
       const initialCalls = totalCalls();
 
-      service.addExecution('error');
+      service.registerCall('error');
 
       expect(totalCalls()).to.be.equals(initialCalls + 1);
     });
@@ -54,23 +54,23 @@ describe('@circuit RatePolicy', () => {
     it('should increase total calls with 1 if is success execution', () => {
       const initialCalls = totalCalls();
 
-      service.addExecution('success');
+      service.registerCall('success');
 
       expect(totalCalls()).to.be.equals(initialCalls + 1);
     });
 
     it('should return self instance', () => {
-      expect(service.addExecution('success')).to.be.instanceOf(RatePolicy);
+      expect(service.registerCall('success')).to.be.instanceOf(RatePolicy);
     });
 
   });
 
-  describe('removeExecution', () => {
+  describe('deleteCallData', () => {
 
     it('should decrease number of errors with 1 if is error', () => {
       const initialErrors = errors();
 
-      service.removeExecution('error');
+      service.deleteCallData('error');
 
       expect(errors()).to.be.equals(initialErrors - 1);
     });
@@ -78,7 +78,7 @@ describe('@circuit RatePolicy', () => {
     it('should not decrease number of errors if is success execution', () => {
       const initialErrors = errors();
 
-      service.removeExecution('success');
+      service.deleteCallData('success');
 
       expect(errors()).to.be.equals(initialErrors);
     });
@@ -86,7 +86,7 @@ describe('@circuit RatePolicy', () => {
     it('should decrease total calls with 1 if is error', () => {
       const initialCalls = totalCalls();
 
-      service.removeExecution('error');
+      service.deleteCallData('error');
 
       expect(totalCalls()).to.be.equals(initialCalls - 1);
     });
@@ -94,13 +94,13 @@ describe('@circuit RatePolicy', () => {
     it('should decrease total calls with 1 if is success execution', () => {
       const initialCalls = totalCalls();
 
-      service.removeExecution('success');
+      service.deleteCallData('success');
 
       expect(totalCalls()).to.be.equals(initialCalls - 1);
     });
 
     it('should return self instance', () => {
-      expect(service.removeExecution('success')).to.be.instanceOf(RatePolicy);
+      expect(service.deleteCallData('success')).to.be.instanceOf(RatePolicy);
     });
 
   });

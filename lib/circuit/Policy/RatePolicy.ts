@@ -9,14 +9,14 @@ export class RatePolicy implements Policy {
     private readonly threshold: number,
   ) { }
 
-  public addExecution(type: 'success' | 'error'): this {
+  public registerCall(type: 'success' | 'error'): this {
     this.errors += type === 'error' ? 1 : 0;
     this.totalCalls += 1;
 
     return this;
   }
 
-  public removeExecution(type: 'success' | 'error'): this {
+  public deleteCallData(type: 'success' | 'error'): this {
     this.errors -= type === 'error' ? 1 : 0;
     this.totalCalls -= 1;
 

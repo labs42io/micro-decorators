@@ -20,15 +20,9 @@ export class CircuitState {
     const isError = error && this.errorsFilter(error);
     const type = isError ? 'error' : 'success';
 
-    if (this.state === 'half-open') {
-      if (isError) {
-        this.close();
-      } else {
-        this.open();
-      }
-    }
+    this.exitHalfOpenState(isError);
 
-    this.policy.addExecution(type);
+    this.policy.registerCall(type);
     this.removeExecution(type);
 
     if (!this.policy.allowExecution()) {
@@ -38,6 +32,18 @@ export class CircuitState {
     return this;
   }
 
+  private exitHalfOpenState(isError: boolean) {
+    if (this.state !== 'half-open') {
+      return;
+    }
+
+    if (isError) {
+      this.close();
+    } else {
+      this.open();
+    }
+  }
+
   private removeExecution(type: 'success' | 'error'): void {
     if (typeof this.interval !== 'number') {
       return;
@@ -45,7 +51,7 @@ export class CircuitState {
 
     const timer = setTimeout(
       () => {
-        this.policy.removeExecution(type);
+        this.policy.deleteCallData(type);
 
         if (this.state === 'open' && !this.policy.allowExecution()) {
           this.close();

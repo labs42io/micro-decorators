@@ -21,12 +21,12 @@ describe('@circuit ErrorsPolicy', () => {
 
   });
 
-  describe('addExecution', () => {
+  describe('registerCall', () => {
 
     it('should increase number of errors with 1 if is error', () => {
       const initialErrors = errors();
 
-      service.addExecution('error');
+      service.registerCall('error');
 
       expect(errors()).to.be.equals(initialErrors + 1);
     });
@@ -34,23 +34,23 @@ describe('@circuit ErrorsPolicy', () => {
     it('should not increase number of errors if is success execution', () => {
       const initialErrors = errors();
 
-      service.addExecution('success');
+      service.registerCall('success');
 
       expect(errors()).to.be.equals(initialErrors);
     });
 
     it('should return self instance', () => {
-      expect(service.addExecution('success')).to.be.instanceOf(ErrorsPolicy);
+      expect(service.registerCall('success')).to.be.instanceOf(ErrorsPolicy);
     });
 
   });
 
-  describe('removeExecution', () => {
+  describe('deleteCallData', () => {
 
     it('should decrease number of errors with 1 if is error', () => {
       const initialErrors = errors();
 
-      service.removeExecution('error');
+      service.deleteCallData('error');
 
       expect(errors()).to.be.equals(initialErrors - 1);
     });
@@ -58,13 +58,13 @@ describe('@circuit ErrorsPolicy', () => {
     it('should not decrease number of errors if is success execution', () => {
       const initialErrors = errors();
 
-      service.removeExecution('success');
+      service.deleteCallData('success');
 
       expect(errors()).to.be.equals(initialErrors);
     });
 
     it('should return self instance', () => {
-      expect(service.removeExecution('success')).to.be.instanceOf(ErrorsPolicy);
+      expect(service.deleteCallData('success')).to.be.instanceOf(ErrorsPolicy);
     });
 
   });
