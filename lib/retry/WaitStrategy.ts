@@ -16,21 +16,20 @@ export class WaitStrategy {
   }
 
   private getTimeout(index: number): number {
-    const patternType = Array.isArray(this.waitPattern)
-      ? 'array'
-      : typeof this.waitPattern;
-
-    switch (patternType) {
-      case 'number':
-        return this.waitPattern as number;
-      case 'array':
-        const values = this.waitPattern as number[];
-        const count = values.length;
-        return index > count ? values[count - 1] : values[index];
-      case 'function':
-        return (this.waitPattern as Function)(index);
-      default:
-        throw new Error(`Option ${patternType} is not supported for 'waitPattern'.`);
+    if (Array.isArray(this.waitPattern)) {
+      const values = this.waitPattern as number[];
+      const count = values.length;
+      return index > count ? values[count - 1] : values[index];
     }
+
+    if (typeof this.waitPattern === 'number') {
+      return this.waitPattern as number;
+    }
+
+    if (typeof this.waitPattern === 'function') {
+      return (this.waitPattern as Function)(index);
+    }
+
+    throw new Error(`Option ${typeof this.waitPattern} is not supported for 'waitPattern'.`);
   }
 }
