@@ -9,7 +9,11 @@ export class SlidingExpiration implements Expiration {
   ) { }
 
   public add(key: string, clearCallback: (key: string) => unknown): void {
-    this.expirations.has(key) ? this.update(key, clearCallback) : this.addKey(key, clearCallback);
+    if (this.expirations.has(key)) {
+      this.update(key, clearCallback);
+    } else {
+      this.addKey(key, clearCallback);
+    }
   }
 
   private addKey(key: string, clearCallback: (key: string) => unknown): void {

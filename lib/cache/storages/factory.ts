@@ -12,15 +12,11 @@ export class StorageFactory implements Factory<Storage> {
   public create(): Storage {
     switch (this.storage) {
       case 'memory':
-        return this.memoryStorage();
+        return new MemoryStorage(this.limit);
 
       default:
         throw new Error(`@cache Storage type is not supported: ${this.storage}.`);
     }
-  }
-
-  private memoryStorage(): MemoryStorage {
-    return new MemoryStorage(this.limit);
   }
 
 }

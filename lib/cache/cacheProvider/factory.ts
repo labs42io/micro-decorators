@@ -14,22 +14,14 @@ export class CacheProviderFactory implements Factory<CacheProvider> {
   public create() {
     switch (this.scope) {
       case 'class':
-        return this.classCacheProvider();
+        return new ClassCacheProvider(this.cacheFactory);
 
       case 'instance':
-        return this.instanceCacheProvider();
+        return new InstanceCacheProvider(this.cacheFactory);
 
       default:
         throw new Error(`@cache invalid scope option: ${this.scope}.`);
     }
-  }
-
-  private classCacheProvider(): ClassCacheProvider {
-    return new ClassCacheProvider(this.cacheFactory);
-  }
-
-  private instanceCacheProvider(): InstanceCacheProvider {
-    return new InstanceCacheProvider(this.cacheFactory);
   }
 
 }

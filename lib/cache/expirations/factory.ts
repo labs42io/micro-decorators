@@ -13,22 +13,14 @@ export class ExpirationFactory implements Factory<Expiration> {
   public create(): Expiration {
     switch (this.expiration) {
       case 'absolute':
-        return this.absoluteExpirtation();
+        return new AbsoluteExpiration(this.timeout);
 
       case 'sliding':
-        return this.slidingExpiration();
+        return new SlidingExpiration(this.timeout);
 
       default:
         throw new Error(`@cache Expiration type is not supported: ${this.expiration}.`);
     }
-  }
-
-  private absoluteExpirtation(): AbsoluteExpiration {
-    return new AbsoluteExpiration(this.timeout);
-  }
-
-  private slidingExpiration(): SlidingExpiration {
-    return new SlidingExpiration(this.timeout);
   }
 
 }
