@@ -1,11 +1,7 @@
 import { expect } from 'chai';
 import { retry } from '../lib';
 
-function wait(timeout: number = 0): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-describe.only('@retry', () => {
+describe('@retry', () => {
   describe('When method is synchrone.', () => {
     describe('When method should return value.', () => {
       describe('When method should work only with attempts number.', () => {
