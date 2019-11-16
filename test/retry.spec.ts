@@ -1,7 +1,11 @@
 import { expect } from 'chai';
 import { retry } from '../lib';
+import { Counter } from '../lib/retry/Counter';
+import { Retryer } from '../lib/retry/Retryer';
+import { WaitStrategy } from '../lib/retry/WaitStrategy';
+import { MethodOptions } from '../lib/retry/RetryOptions';
 
-describe('@retry', () => {
+describe.only('@retry', () => {
   describe('When method is synchrone.', () => {
     describe('When method should return value.', () => {
       describe('When method should work only with attempts number.', () => {
@@ -476,7 +480,7 @@ describe('@retry', () => {
 
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
           target.times.forEach((time) => {
-            expect(Math.floor(time / 100) * 100).to.equal(100);
+            expect(time).to.be.approximately(100, 5);
           });
         });
 
@@ -506,7 +510,7 @@ describe('@retry', () => {
 
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
           target.times.forEach((time, index) => {
-            expect(Math.floor(time / 100) * 100).to.equal(100 * (index + 1));
+            expect(time).to.be.approximately(100 * (index + 1), 5);
           });
         });
 
@@ -536,7 +540,7 @@ describe('@retry', () => {
 
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
           target.times.forEach((time, index) => {
-            expect(Math.floor(time / 100) * 100).to.equal(100 * (index + 1));
+            expect(time).to.be.approximately(100 * (index + 1), 5);
           });
         });
 
@@ -559,4 +563,93 @@ describe('@retry', () => {
       });
     });
   });
+
+  describe('Counter class', () => {
+    let counter: Counter;
+
+    beforeEach(() => {
+      counter = new Counter();
+    });
+
+    it('should return count of counter when inited', () => {
+      const count = counter.get();
+
+      expect(count).to.equal(0);
+    });
+
+    it('should return incremented count of counter', () => {
+      let count = counter.get();
+      counter.next();
+      count = counter.next();
+
+      expect(count).to.equal(2);
+    });
+  });
+
+  describe('WaitStrategy class', () => {
+    let strategy: WaitStrategy;
+
+    it('should delay expected time when pattern is of type number', async () => {
+      strategy = new WaitStrategy(400);
+      const delay = await getFunctionDelay(() => strategy.wait(0));
+      expect(delay).to.be.approximately(400, 5);
+    });
+
+    it('should delay expected time when pattern is of type function', async () => {
+      strategy = new WaitStrategy(() => { return 300; });
+      const delay = await getFunctionDelay(() => strategy.wait(1));
+      expect(delay).to.be.approximately(300, 5);
+    });
+
+    it('should delay expected time when pattern is of type array', async () => {
+      strategy = new WaitStrategy([100, 300, 200]);
+
+      let delay = await getFunctionDelay(() => strategy.wait(0));
+      expect(delay).to.be.approximately(100, 5);
+
+      delay = await getFunctionDelay(() => strategy.wait(1));
+      expect(delay).to.be.approximately(300, 5);
+
+      delay = await getFunctionDelay(() => strategy.wait(2));
+      expect(delay).to.be.approximately(200, 5);
+    });
+  });
+
+  describe('Retryer class', () => {
+    let retryer: Retryer;
+
+    it('should throw error if no attempts', () => {
+      const options = {};
+      const methodOptions: MethodOptions = {
+        instance: {},
+        args: {},
+        method: () => { },
+      };
+
+      retryer = new Retryer(options, methodOptions);
+
+      expect(() => retryer.retry(new Error(), null as any, 1)).to.throw('Retry failed.');
+    });
+
+    it('should throw error if retry count exeeded attempts count', () => {
+      const options = {};
+      const methodOptions: MethodOptions = {
+        instance: {},
+        args: {},
+        method: () => { },
+      };
+
+      retryer = new Retryer(options, methodOptions);
+
+      expect(() => retryer.retry(new Error(), 3, 4)).to.throw('Retry failed.');
+    });
+  });
 });
+
+async function getFunctionDelay(method: Function): Promise<number> {
+  const time = new Date().getTime();
+
+  await method();
+
+  return new Date().getTime() - time;
+}
