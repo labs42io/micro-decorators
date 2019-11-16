@@ -5,7 +5,7 @@ import { Retryer } from '../lib/retry/Retryer';
 import { WaitStrategy } from '../lib/retry/WaitStrategy';
 import { MethodOptions } from '../lib/retry/RetryOptions';
 
-describe.only('@retry', () => {
+describe('@retry', () => {
   describe('When method is synchrone.', () => {
     describe('When method should return value.', () => {
       describe('When method should work only with attempts number.', () => {
