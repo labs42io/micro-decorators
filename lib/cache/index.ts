@@ -4,6 +4,7 @@ import { StorageFactory } from './storages/factory';
 import { CacheFactory } from './caches/factory';
 import { HashService } from '../utils/hash';
 import { CacheProviderFactory } from './cacheProvider/factory';
+import { CacheProvider } from './cacheProvider/CacheProvider';
 
 export { CacheOptions };
 
@@ -23,12 +24,7 @@ export function cache(
 ): MethodDecorator {
 
   const { timeout, options } = parseParameters(timeoutOrOptions, optionsOrVoid);
-
-  const hashService = new HashService();
-  const expirationFactory = new ExpirationFactory(timeout, options.expiration);
-  const storageFactory = new StorageFactory(options.size, options.storage);
-  const cacheFactory = new CacheFactory(hashService, expirationFactory, storageFactory);
-  const cacheProvider = new CacheProviderFactory(options.scope, cacheFactory).create();
+  const cacheProvider = createCacheProvider(timeout, options);
 
   return function (_: any, __: any, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
@@ -66,4 +62,13 @@ function parseParameters(
     timeout: timeoutOrOptions.timeout,
     options: { ...DEFAULT_OPTIONS, ...timeoutOrOptions },
   };
+}
+
+function createCacheProvider(timeout: number, options: CacheOptions): CacheProvider {
+  const hashService = new HashService();
+  const expirationFactory = new ExpirationFactory(timeout, options.expiration);
+  const storageFactory = new StorageFactory(options.size, options.storage);
+  const cacheFactory = new CacheFactory(hashService, expirationFactory, storageFactory);
+
+  return new CacheProviderFactory(options.scope, cacheFactory).create();
 }

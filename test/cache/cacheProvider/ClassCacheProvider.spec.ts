@@ -19,8 +19,6 @@ describe('@cache ClassCacheProvider', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(ClassCacheProvider));
 
-    it('should init cache property to null', () => expect(service['cache']).to.be.null);
-
   });
 
   describe('get', () => {
@@ -29,16 +27,30 @@ describe('@cache ClassCacheProvider', () => {
       const cacheInstance = {} as any;
       cacheFactoryStub.create.returns(cacheInstance);
 
-      expect(service.get()).to.be.equals(cacheInstance);
+      service.get();
+
       expect(cacheFactoryStub.create.calledOnce).to.be.true;
-      expect(service['cache']).to.be.equals(cacheInstance);
+    });
+
+    it('should return instance create from cahceFactory', () => {
+      const cacheInstance = {} as any;
+      cacheFactoryStub.create.returns(cacheInstance);
+
+      expect(service.get()).to.equals(cacheInstance);
     });
 
     it('should return existent instance of cache if is not first call', () => {
       const response = service['cache'] = {} as any;
 
+      expect(service.get()).to.equals(response);
+    });
+
+    it('should not call CacheFactory.create if instance of cache service exists', () => {
+      service['cache'] = {} as any;
+
+      service.get();
+
       expect(cacheFactoryStub.create.called).to.be.false;
-      expect(service.get()).to.be.equals(response);
     });
 
   });

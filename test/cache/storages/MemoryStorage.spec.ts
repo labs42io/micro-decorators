@@ -12,8 +12,6 @@ describe('@cache MemoryStorage', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(MemoryStorage));
 
-    it('should init storage', () => expect(service['storage']).to.be.instanceOf(Map));
-
   });
 
   describe('set', () => {
@@ -24,7 +22,6 @@ describe('@cache MemoryStorage', () => {
 
       service.set('c', 3);
 
-      expect(service['storage'].size).to.be.equals(2);
       expect(Array.from(service['storage'].keys())).to.be.deep.equals(['b', 'c']);
     });
 
@@ -33,11 +30,11 @@ describe('@cache MemoryStorage', () => {
       const value = 42;
       service.set(key, value);
 
-      expect(service['storage'].get(key)).to.be.equals(value);
+      expect(service['storage'].get(key)).to.equals(value);
     });
 
     it('should return self instance', async () => {
-      expect(await service.set('key', 'value')).to.be.equals(service);
+      expect(await service.set('key', 'value')).to.equals(service);
     });
 
   });
@@ -46,7 +43,7 @@ describe('@cache MemoryStorage', () => {
 
     it('should return value from storage', async () => {
       service['storage'].set('key', 'value');
-      expect(await service.get('key')).to.be.equals(service['storage'].get('key'));
+      expect(await service.get('key')).to.equals(service['storage'].get('key'));
     });
 
   });
@@ -75,7 +72,7 @@ describe('@cache MemoryStorage', () => {
     });
 
     it('should return self instance', async () => {
-      expect(await service.delete('key')).to.be.equals(service);
+      expect(await service.delete('key')).to.equals(service);
     });
 
   });

@@ -6,7 +6,7 @@ import { delay, executionTime } from '../utils';
 describe('@cache', () => {
 
   const delayTime = 8;
-  const timePrecision = 2;
+  const timePrecision = 3;
 
   const factory = (timeout: number, options?: CacheOptions) => {
     class Test {
@@ -123,7 +123,7 @@ describe('@cache', () => {
 
     it('should return same value as without decorator', async () => {
       const instance = new (factory(1000));
-      expect(await instance.method(42)).to.be.equals(43);
+      expect(await instance.method(42)).to.equals(43);
     });
 
     describe('result should be same at multiple calls', () => {
@@ -133,7 +133,7 @@ describe('@cache', () => {
         const promises = Array.from({ length: 10 }, () => instance.method(42));
         const values = await Promise.all(promises);
 
-        expect(new Set(values).size).to.be.equals(1);
+        expect(new Set(values).size).to.equals(1);
       });
 
     });

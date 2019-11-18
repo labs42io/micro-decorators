@@ -32,8 +32,8 @@ describe('@cache InstanceCacheProvider', () => {
       const instance = {} as any;
       cacheFactoryStub.create.returns(result);
 
-      expect(service.get(instance)).to.be.equals(result);
-      expect(service['instanceCaches'].get(instance)).to.be.equals(result);
+      expect(service.get(instance)).to.equals(result);
+      expect(service['instanceCaches'].get(instance)).to.equals(result);
       expect(cacheFactoryStub.create.calledOnce).to.be.true;
     });
 
@@ -42,7 +42,7 @@ describe('@cache InstanceCacheProvider', () => {
       const instance = {} as any;
       service['instanceCaches'].set(instance, result);
 
-      expect(service.get(instance)).to.be.equals(result);
+      expect(service.get(instance)).to.equals(result);
       expect(cacheFactoryStub.create.called).to.be.false;
     });
 

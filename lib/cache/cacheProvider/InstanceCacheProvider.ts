@@ -10,8 +10,8 @@ export class InstanceCacheProvider<K = any> implements CacheProvider<K> {
   constructor(private readonly cacheFactory: CacheFactory) { }
 
   public get(instance: ClassType): Cache<K> {
-    const hasCache = !this.instanceCaches.has(instance);
-    if (hasCache) {
+    const hasCache = this.instanceCaches.has(instance);
+    if (!hasCache) {
       const cache = this.cacheFactory.create();
       this.instanceCaches.set(instance, cache);
     }
