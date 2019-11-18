@@ -19,10 +19,6 @@ describe('@cache InstanceCacheProvider', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(InstanceCacheProvider));
 
-    it('should init instancesCaches property', () => {
-      expect(service['instanceCaches']).to.be.instanceOf(WeakMap);
-    });
-
   });
 
   describe('get', () => {
@@ -32,17 +28,32 @@ describe('@cache InstanceCacheProvider', () => {
       const instance = {} as any;
       cacheFactoryStub.create.returns(result);
 
-      expect(service.get(instance)).to.be.equals(result);
-      expect(service['instanceCaches'].get(instance)).to.be.equals(result);
-      expect(cacheFactoryStub.create.calledOnce).to.be.true;
+      expect(service.get(instance)).to.equals(result);
     });
 
     it('should return already created cache for current isntance', () => {
       const result = {} as any;
+      cacheFactoryStub.create.returns(result);
       const instance = {} as any;
-      service['instanceCaches'].set(instance, result);
+      service.get(instance);
 
-      expect(service.get(instance)).to.be.equals(result);
+      expect(service.get(instance)).to.equals(result);
+    });
+
+    it('should create new cahce with cacheFactory.create', () => {
+      service.get({} as any);
+
+      expect(cacheFactoryStub.create.calledOnce).to.be.true;
+    });
+
+    it('should not create new cache cache instance if already exists', () => {
+      cacheFactoryStub.create.returns({} as any);
+      const instance = {} as any;
+      service.get(instance);
+      cacheFactoryStub.create.reset();
+
+      service.get(instance);
+
       expect(cacheFactoryStub.create.called).to.be.false;
     });
 

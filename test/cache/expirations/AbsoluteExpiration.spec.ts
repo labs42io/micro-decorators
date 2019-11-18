@@ -15,35 +15,11 @@ describe('@cache AbsoluteExpiration', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(AbsoluteExpiration));
 
-    it('should init expirations', () => {
-      expect(service['expirations']).to.be.instanceOf(Set);
-    });
-
   });
 
   describe('add', () => {
 
     describe('new key', () => {
-
-      it('should add key to expirations', () => {
-        const size = service['expirations'].size;
-
-        service.add('key', () => { });
-
-        expect(service['expirations'].size).to.be.equals(size + 1);
-        expect(service['expirations'].has('key')).to.be.true;
-      });
-
-      it('should remove key from expirations after timeout ms', async () => {
-        const size = service['expirations'].size;
-
-        service.add('key', () => { });
-
-        await delay(timeout);
-
-        expect(service['expirations'].size).to.be.equals(size);
-        expect(service['expirations'].has('key')).to.be.false;
-      });
 
       it('should call clearCallback after timeout ms', async () => {
         const spy = sinon.spy();
@@ -83,7 +59,6 @@ describe('@cache AbsoluteExpiration', () => {
         await delay(timeout / 2);
 
         expect(firstSpy.calledOnce).to.be.true;
-        expect(secondSpy.called).to.be.false;
       });
 
     });
