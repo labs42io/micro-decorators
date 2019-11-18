@@ -21,10 +21,6 @@ describe('@circuit InstanceCircuitStateStorage', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(InstanceCircuitStateStorage));
 
-    it('should init instancesStorage property', () => {
-      expect(service['instancesStorage']).to.be.instanceOf(WeakMap);
-    });
-
   });
 
   describe('get', () => {
@@ -34,8 +30,7 @@ describe('@circuit InstanceCircuitStateStorage', () => {
       const expected = {} as any;
       circuitStateFactoryStub.create.returns(expected);
 
-      expect(service.get(undefined, {} as any)).to.be.equals(expected);
-      expect(circuitStateFactoryStub.create.calledOnce).to.be.true;
+      expect(service.get(undefined, {} as any)).to.equals(expected);
     });
 
     it('should use create CircuitState if is called not first time for current instance', () => {
@@ -43,8 +38,22 @@ describe('@circuit InstanceCircuitStateStorage', () => {
       const instance = {} as any;
       service['instancesStorage'].set(instance, expected);
 
-      expect(service.get([], instance)).to.be.equals(expected);
-      expect(circuitStateFactoryStub.create.called).to.be.false;
+      expect(service.get([], instance)).to.equals(expected);
+    });
+
+    it('should use circuitStateFactory.create to create new instance', () => {
+      service.get(undefined, {} as any);
+
+      expect(circuitStateFactoryStub.create.calledOnce).to.be.true;
+    });
+
+    it('should not use circuitStateFactory.create if correct instance already exists', () => {
+      const instance = {} as any;
+      service['instancesStorage'].set(instance, {} as any);
+
+      service.get(undefined, instance);
+
+      expect(circuitStateFactoryStub.create.calledOnce).to.be.false;
     });
 
   });

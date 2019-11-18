@@ -56,7 +56,7 @@ describe('@circuit', () => {
 
       await delay(timeout);
 
-      expect(instance.sqrt()).to.be.equals(42);
+      expect(instance.sqrt()).to.equals(42);
     });
 
     it('should change state from half-open to open if executes with success', async () => {
@@ -69,7 +69,7 @@ describe('@circuit', () => {
       await delay(timeout);
 
       instance.sqrt();
-      expect(instance.sqrt()).to.be.equals(42);
+      expect(instance.sqrt()).to.equals(42);
     });
 
     it('should change state from half-open to close if executes with error', async () => {
@@ -192,7 +192,7 @@ describe('@circuit', () => {
           instance.sqrt(-1);
         } catch { }
 
-        expect(instance.sqrt()).to.be.equals(42);
+        expect(instance.sqrt()).to.equals(42);
 
       });
 
@@ -221,7 +221,7 @@ describe('@circuit', () => {
           instance.sqrt(-1);
         } catch { }
 
-        expect(instance.sqrt()).to.be.equals(42);
+        expect(instance.sqrt()).to.equals(42);
       });
 
     });
@@ -283,7 +283,7 @@ describe('@circuit', () => {
         it('method error', () => {
           const instance = new (factory(threshold, timeout, { onError: 'ignore' }));
 
-          expect(instance.sqrt(-1)).to.be.equals(undefined);
+          expect(instance.sqrt(-1)).to.equals(undefined);
         });
 
         it('decorator error', () => {
@@ -291,7 +291,7 @@ describe('@circuit', () => {
 
           repeat(() => instance.sqrt(-1), threshold);
 
-          expect(instance.sqrt(-1)).to.be.equals(undefined);
+          expect(instance.sqrt(-1)).to.equals(undefined);
         });
 
       });
@@ -301,7 +301,7 @@ describe('@circuit', () => {
         it('method error', async () => {
           const instance = new (factory(threshold, timeout, { onError: 'ignoreAsync' }));
 
-          expect(await instance.asyncSqrt(-1)).to.be.equals(undefined);
+          expect(await instance.asyncSqrt(-1)).to.equals(undefined);
         });
 
         it('decorator error', async () => {
@@ -310,7 +310,7 @@ describe('@circuit', () => {
           const promises = repeat(() => instance.asyncSqrt(-1), threshold);
           await Promise.all(promises);
 
-          expect(await instance.asyncSqrt(-1)).to.be.equals(undefined);
+          expect(await instance.asyncSqrt(-1)).to.equals(undefined);
         });
 
       });
@@ -385,8 +385,8 @@ describe('@circuit', () => {
 
           await delay(timeout);
 
-          expect(firstInstance.sqrt()).to.be.equals(42);
-          expect(secondInstance.sqrt()).to.be.equals(42);
+          expect(firstInstance.sqrt()).to.equals(42);
+          expect(secondInstance.sqrt()).to.equals(42);
         });
 
       });
@@ -402,7 +402,7 @@ describe('@circuit', () => {
           try { firstInstance.sqrt(-1); } catch { }
 
           expect(() => firstInstance.sqrt()).to.throw('@circuit: method sqrt is blocked.');
-          expect(secondInstance.sqrt()).to.be.equals(42);
+          expect(secondInstance.sqrt()).to.equals(42);
         });
 
         it('should return to open for blocked instance of class', async () => {
@@ -416,7 +416,7 @@ describe('@circuit', () => {
 
           try { secondInstance.sqrt(-1); } catch { }
 
-          expect(firstInstance.sqrt()).to.be.equals(42);
+          expect(firstInstance.sqrt()).to.equals(42);
           expect(() => secondInstance.sqrt()).to.throw('@circuit: method sqrt is blocked.');
         });
 
@@ -433,7 +433,7 @@ describe('@circuit', () => {
           try { firstInstance.sqrt(-1); } catch { }
 
           expect(() => firstInstance.sqrt(-1)).to.throw('@circuit: method sqrt is blocked.');
-          expect(secondInstance.sqrt()).to.be.equals(42);
+          expect(secondInstance.sqrt()).to.equals(42);
         });
 
         it('should return to open state for blocked arguemnts', async () => {

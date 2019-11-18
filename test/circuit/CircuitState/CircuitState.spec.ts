@@ -28,10 +28,6 @@ describe('@circuit CircuitState', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(CircuitState));
 
-    it('should set state to open', () => expect(service['state']).to.be.equals('open'));
-
-    it('should set timers to empty array', () => expect(service['timers']).to.be.instanceOf(Set));
-
   });
 
   describe('allow execution', () => {
@@ -39,19 +35,19 @@ describe('@circuit CircuitState', () => {
     it('shuld return true if current state is open', () => {
       service['state'] = 'open';
 
-      expect(service.allowExecution()).to.be.equals(true);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should return true if current state is half-open', () => {
       service['state'] = 'half-open';
 
-      expect(service.allowExecution()).to.be.equals(true);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should return false if current state is close', () => {
       service['state'] = 'close';
 
-      expect(service.allowExecution()).to.be.equals(false);
+      expect(service.allowExecution()).to.be.false;
     });
 
   });
@@ -71,7 +67,7 @@ describe('@circuit CircuitState', () => {
 
         service.register();
 
-        expect(service['state']).to.be.equals('open');
+        expect(service.allowExecution()).to.be.true;
       });
 
       it('should became close if was called with error', () => {
@@ -79,7 +75,7 @@ describe('@circuit CircuitState', () => {
 
         service.register(new Error('42'));
 
-        expect(service['state']).to.be.equals('close');
+        expect(service.allowExecution()).to.be.false;
       });
 
       it('should became open if was called with error but errorFilter returned false', () => {
@@ -89,7 +85,7 @@ describe('@circuit CircuitState', () => {
 
         service.register(new Error('42'));
 
-        expect(service['state']).to.be.equals('open');
+        expect(service.allowExecution()).to.be.true;
       });
 
     });
@@ -104,13 +100,15 @@ describe('@circuit CircuitState', () => {
         expect(policyStub.reset.calledOnce).to.be.true;
       });
 
-      it('should clear timeouts', () => {
+      it('should clear timeouts', async () => {
         service['state'] = 'half-open';
-        service['timers'] = new Set([setTimeout(() => { }, interval) as any]);
+        const stubFunction = sinon.stub();
+        service['timers'] = new Set([setTimeout(stubFunction, interval) as any]);
 
         service.register();
+        await delay(interval);
 
-        expect(service['timers']).to.be.instanceOf(Set).and.have.property('size', 0);
+        expect(stubFunction.called).to.be.false;
       });
 
       it('should call clearCallback', () => {
@@ -126,30 +124,49 @@ describe('@circuit CircuitState', () => {
 
     describe('when state became close', () => {
 
-      it('should set state to half-open after timeout ms', async () => {
-        service['state'] = 'half-open';
+      describe('should set state to half-open after timeout ms', () => {
 
-        service.register(new Error('42'));
-        await delay(timeout);
+        it('should allow execution after interval', async () => {
+          service['state'] = 'half-open';
 
-        expect(service['state']).to.be.equals('half-open');
+          service.register(new Error('42'));
+          await delay(timeout);
+
+          expect(service.allowExecution()).to.be.true;
+        });
+
+        it('should not allow execution if after interval it register error', async () => {
+          service['state'] = 'half-open';
+
+          service.register(new Error('42'));
+          await delay(timeout);
+
+          service.register(new Error('42'));
+
+          expect(service.allowExecution()).to.be.false;
+        });
+
       });
 
     });
 
     describe('should call policy.registerCall', () => {
 
-      it('should call policy.registerCall with "success" if is success execution', () => {
+      it('should call policy.registerCall', () => {
         service.register();
 
         expect(policyStub.registerCall.calledOnce).to.be.true;
+      });
+
+      it('should call polu.registerCall with "success" if is success call', () => {
+        service.register();
+
         expect(policyStub.registerCall.calledWith('success')).to.be.true;
       });
 
-      it('should call policy.registerCall with "error" if is error execution', () => {
+      it('should call policy.registerCall with "error" if was error in execution', () => {
         service.register(new Error('42'));
 
-        expect(policyStub.registerCall.calledOnce).to.be.true;
         expect(policyStub.registerCall.calledWith('error')).to.be.true;
       });
 
@@ -170,12 +187,6 @@ describe('@circuit CircuitState', () => {
         ),
       );
 
-      it('should add timer data to timers array', () => {
-        service.register();
-
-        expect(service['timers']).to.be.instanceOf(Set).and.have.property('size', 1);
-      });
-
       it('should remove execution after interval ms', async () => {
         service.register();
 
@@ -192,8 +203,18 @@ describe('@circuit CircuitState', () => {
 
         await delay(interval);
 
+        expect(service.allowExecution()).to.be.false;
+      });
+
+      it('should call policy.allowExecution twice', async () => {
+        policyStub.allowExecution.returns(true);
+
+        service.register();
+        policyStub.allowExecution.returns(false);
+
+        await delay(interval);
+
         expect(policyStub.allowExecution.calledTwice).to.be.true;
-        expect(service['state']).to.be.equals('close');
       });
 
     });
@@ -209,10 +230,10 @@ describe('@circuit CircuitState', () => {
 
       service.register();
 
-      expect(service['state']).to.be.equals('close');
+      expect(service.allowExecution()).to.be.false;
     });
 
-    it('should return self instance', () => expect(service.register()).to.be.equals(service));
+    it('should return self instance', () => expect(service.register()).to.equals(service));
 
   });
 

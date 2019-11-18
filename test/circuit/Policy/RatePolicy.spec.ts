@@ -1,66 +1,51 @@
 import { expect } from 'chai';
 
 import { RatePolicy } from '../../../lib/circuit/Policy/RatePolicy';
+import { repeat } from '../../utils';
 
 describe('@circuit RatePolicy', () => {
 
-  const threshold = 0.5;
+  const threshold = 0.6;
   let service: RatePolicy;
 
   beforeEach(() => service = new RatePolicy(threshold));
 
-  function errors(): number {
-    return service['errors'];
-  }
-
-  function totalCalls(): number {
-    return service['totalCalls'];
-  }
-
   describe('constructor', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(RatePolicy));
-
-    it('should init with number of errors equals to 0', () => expect(errors()).to.be.equals(0));
 
   });
 
   describe('registerCall', () => {
 
     it('should increase number of errors with 1 if is error', () => {
-      const initialErrors = errors();
-
       service.registerCall('error');
 
-      expect(errors()).to.be.equals(initialErrors + 1);
+      expect(service.allowExecution()).to.be.false;
     });
 
     it('should not increase number of errors if is success execution', () => {
-      const initialErrors = errors();
-
       service.registerCall('success');
 
-      expect(errors()).to.be.equals(initialErrors);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should increase total calls with 1 if is error', () => {
-      const initialCalls = totalCalls();
+      service.registerCall('success').registerCall('success');
 
       service.registerCall('error');
 
-      expect(totalCalls()).to.be.equals(initialCalls + 1);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should increase total calls with 1 if is success execution', () => {
-      const initialCalls = totalCalls();
+      service.registerCall('error').registerCall('success');
 
-      service.registerCall('success');
-
-      expect(totalCalls()).to.be.equals(initialCalls + 1);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should return self instance', () => {
-      expect(service.registerCall('success')).to.be.instanceOf(RatePolicy);
+      expect(service.registerCall('success')).to.be.equals(service);
     });
 
   });
@@ -68,39 +53,39 @@ describe('@circuit RatePolicy', () => {
   describe('deleteCallData', () => {
 
     it('should decrease number of errors with 1 if is error', () => {
-      const initialErrors = errors();
+      service.registerCall('error');
 
       service.deleteCallData('error');
 
-      expect(errors()).to.be.equals(initialErrors - 1);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should not decrease number of errors if is success execution', () => {
-      const initialErrors = errors();
+      service.registerCall('success').registerCall('error');
 
       service.deleteCallData('success');
 
-      expect(errors()).to.be.equals(initialErrors);
+      expect(service.allowExecution()).to.be.false;
     });
 
     it('should decrease total calls with 1 if is error', () => {
-      const initialCalls = totalCalls();
+      service.registerCall('error').registerCall('error').registerCall('success');
 
       service.deleteCallData('error');
 
-      expect(totalCalls()).to.be.equals(initialCalls - 1);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should decrease total calls with 1 if is success execution', () => {
-      const initialCalls = totalCalls();
+      service.registerCall('success').registerCall('error');
 
       service.deleteCallData('success');
 
-      expect(totalCalls()).to.be.equals(initialCalls - 1);
+      expect(service.allowExecution()).to.be.false;
     });
 
     it('should return self instance', () => {
-      expect(service.deleteCallData('success')).to.be.instanceOf(RatePolicy);
+      expect(service.deleteCallData('success')).to.be.equals(service);
     });
 
   });
@@ -108,23 +93,23 @@ describe('@circuit RatePolicy', () => {
   describe('reset', () => {
 
     it('should set number of errors to 0', () => {
-      service['errors'] = 2;
+      service.registerCall('error');
 
       service.reset();
 
-      expect(errors()).to.be.equals(0);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should set number of totalCalls to 0', () => {
-      service['totalCalls'] = 30;
+      service.registerCall('error');
 
       service.reset();
 
-      expect(totalCalls()).to.be.equals(0);
+      expect(service.allowExecution()).to.be.true;
     });
 
     it('should return self instance', () => {
-      expect(service.reset()).to.be.instanceOf(RatePolicy);
+      expect(service.reset()).to.be.equals(service);
     });
 
   });
@@ -132,24 +117,22 @@ describe('@circuit RatePolicy', () => {
   describe('allowExecution', () => {
 
     it('should return true if number of errors / total calls is less than threshold', () => {
-      service['errors'] = 1;
-      service['totalCalls'] = 4;
+      service.registerCall('success').registerCall('error');
 
-      expect(service.allowExecution()).to.be.equals(true);
+      expect(service.allowExecution()).to.equals(true);
     });
 
     it('should return false if number of errors is equals with threshold', () => {
-      service['errors'] = 1;
-      service['totalCalls'] = 2;
+      repeat(() => service.registerCall('success'), 2);
+      repeat(() => service.registerCall('error'), 3);
 
-      expect(service.allowExecution()).to.be.equals(false);
+      expect(service.allowExecution()).to.equals(false);
     });
 
     it('should return false if number of errors is greater than threshold', () => {
-      service['errors'] = 2;
-      service['totalCalls'] = 2;
+      service.registerCall('error');
 
-      expect(service.allowExecution()).to.be.equals(false);
+      expect(service.allowExecution()).to.equals(false);
     });
 
   });

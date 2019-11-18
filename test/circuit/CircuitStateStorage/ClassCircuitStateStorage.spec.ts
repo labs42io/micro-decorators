@@ -20,30 +20,38 @@ describe('@circuit ClassCircuitStateStorage', () => {
   describe('constructor', () => {
 
     it('should create', () => expect(service).to.be.instanceOf(ClassCircuitStateStorage));
-
-    it('should init with circuitState property null', () => {
-      expect(service['circuitState']).to.be.null;
-    });
-
   });
 
   describe('get', () => {
 
-    it('should create new instance of circuit state if is first call', () => {
+    it('should create new instance of circuit state if is first call and return it', () => {
       const expectedResult = {} as any;
       circuitStateFactoryStub.create.returns(expectedResult);
       service['circuitState'] = null;
 
-      expect(service.get()).to.be.equals(expectedResult);
-      expect(service['circuitState']).to.be.equals(expectedResult);
-      expect(circuitStateFactoryStub.create.calledOnce).to.be.true;
+      expect(service.get()).to.equals(expectedResult);
     });
 
     it('should return existent instance of circuit state if is not first call', () => {
       const instance = service['circuitState'] = {} as any;
 
-      expect(service.get()).to.be.equals(instance);
-      expect(circuitStateFactoryStub.create.called).to.be.false;
+      expect(service.get()).to.equals(instance);
+    });
+
+    it('should use circuitStateFactory.create to create new instance of CircuitState', () => {
+      service['circuitState'] = null;
+
+      service.get();
+
+      expect(circuitStateFactoryStub.create.calledOnce).to.be.true;
+    });
+
+    it('should not call circuitStateFactory.create if CircuitState instance already exists', () => {
+      service['circuitState'] = {} as any;
+
+      service.get();
+
+      expect(circuitStateFactoryStub.create.calledOnce).to.be.false;
     });
 
   });
