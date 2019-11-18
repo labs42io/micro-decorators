@@ -54,6 +54,14 @@ describe('@cache ClassCacheProvider', () => {
       expect(cacheFactoryStub.create.called).to.be.false;
     });
 
+    it('should not call CacheFactory.create if instance of cache service exists', () => {
+      service['cache'] = {} as any;
+
+      service.get();
+
+      expect(cacheFactoryStub.create.called).to.be.false;
+    });
+
   });
 
 });
