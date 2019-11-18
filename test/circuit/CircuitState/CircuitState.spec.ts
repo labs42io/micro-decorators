@@ -12,14 +12,16 @@ describe('@circuit CircuitState', () => {
   const interval = undefined;
   let errorFilterStub: sinon.SinonStub<[Error], boolean>;
   let policyStub: sinon.SinonStubbedInstance<Policy>;
+  let clearCallbackStub: sinon.SinonStub<[], unknown>;
   let service: CircuitState;
 
   beforeEach(() => {
     errorFilterStub = sinon.stub().returns(true) as any;
+    clearCallbackStub = sinon.stub();
     policyStub = sinon.createStubInstance(ErrorsPolicy);
     policyStub.allowExecution.returns(true);
 
-    service = new CircuitState(timeout, interval, errorFilterStub, policyStub);
+    service = new CircuitState(timeout, interval, errorFilterStub, policyStub, clearCallbackStub);
   });
 
   describe('constructor', () => {
@@ -28,9 +30,7 @@ describe('@circuit CircuitState', () => {
 
     it('should set state to open', () => expect(service['state']).to.be.equals('open'));
 
-    it('should set timers to empty array', () => {
-      expect(service['timers']).to.be.an('array').and.have.length(0);
-    });
+    it('should set timers to empty array', () => expect(service['timers']).to.be.instanceOf(Set));
 
   });
 
@@ -106,11 +106,20 @@ describe('@circuit CircuitState', () => {
 
       it('should clear timeouts', () => {
         service['state'] = 'half-open';
-        service['timers'] = [setTimeout(() => { }, timeout) as any];
+        service['timers'] = new Set([setTimeout(() => { }, interval) as any]);
 
         service.register();
 
-        expect(service['timers']).to.be.an('array').and.have.length(0);
+        expect(service['timers']).to.be.instanceOf(Set).and.have.property('size', 0);
+      });
+
+      it('should call clearCallback', () => {
+        service['state'] = 'half-open';
+        service['timers'] = new Set([setTimeout(() => { }, interval) as any]);
+
+        service.register();
+
+        expect(clearCallbackStub.calledOnce).to.be.true;
       });
 
     });
@@ -151,12 +160,20 @@ describe('@circuit CircuitState', () => {
       const interval = 3;
       let service: CircuitState;
 
-      beforeEach(() => service = new CircuitState(timeout, interval, errorFilterStub, policyStub));
+      beforeEach(
+        () => service = new CircuitState(
+          timeout,
+          interval,
+          errorFilterStub,
+          policyStub,
+          clearCallbackStub,
+        ),
+      );
 
       it('should add timer data to timers array', () => {
         service.register();
 
-        expect(service['timers']).to.be.an('array').and.have.length(1);
+        expect(service['timers']).to.be.instanceOf(Set).and.have.property('size', 1);
       });
 
       it('should remove execution after interval ms', async () => {

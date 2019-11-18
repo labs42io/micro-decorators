@@ -1,7 +1,5 @@
 import { expect } from 'chai';
-import * as sinon from 'sinon';
 
-import { CircuitStateFactory } from '../../../lib/circuit/CircuitState/factory';
 import {
   ArgumentsCircuitStateStorage,
 } from '../../../lib/circuit/CircuitStateStorage/ArgumentsCircuitStateStorage';
@@ -18,8 +16,8 @@ describe('@circuit CircuitStateStorageFactory', () => {
   describe('constructor', () => {
 
     it('should create', () => {
-      const service = new CircuitStateStorageFactory('class', undefined);
-      expect(service).to.be.instanceOf(CircuitStateStorageFactory);
+      const service = new CircuitStateStorageFactory('class', undefined, undefined);
+      expect(service).to.be.instanceOf(CircuitStateStorageFactory, undefined);
     });
 
   });
@@ -27,19 +25,19 @@ describe('@circuit CircuitStateStorageFactory', () => {
   describe('create', () => {
 
     it('should create instance of ArgumentsCircuitStateStorage for "args-hash" argument', () => {
-      const service = new CircuitStateStorageFactory('args-hash', undefined);
+      const service = new CircuitStateStorageFactory('args-hash', undefined, undefined);
 
       expect(service.create()).to.be.instanceOf(ArgumentsCircuitStateStorage);
     });
 
     it('should create instance of ClassCircuitStateStorage for "class" argument', () => {
-      const service = new CircuitStateStorageFactory('class', undefined);
+      const service = new CircuitStateStorageFactory('class', undefined, undefined);
 
       expect(service.create()).to.be.instanceOf(ClassCircuitStateStorage);
     });
 
     it('should create instance of InstanceCircuitStateStorage for "instance" argument', () => {
-      const service = new CircuitStateStorageFactory('instance', undefined);
+      const service = new CircuitStateStorageFactory('instance', undefined, undefined);
 
       expect(service.create()).to.be.instanceOf(InstanceCircuitStateStorage);
     });

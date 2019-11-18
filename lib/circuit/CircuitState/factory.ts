@@ -11,10 +11,10 @@ export class CircuitStateFactory implements Factory<CircuitState> {
     private readonly policyFactory: PolicyFactory,
   ) { }
 
-  public create(): CircuitState {
+  public create(clearCallback: () => unknown = () => { }): CircuitState {
     const policy = this.policyFactory.create();
 
-    return new CircuitState(this.timeout, this.interval, this.errorFilter, policy);
+    return new CircuitState(this.timeout, this.interval, this.errorFilter, policy, clearCallback);
   }
 
 }

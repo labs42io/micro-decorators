@@ -1,4 +1,5 @@
 import { raiseStrategy } from '../utils';
+import { HashService } from '../utils/hash';
 import { isPromiseLike } from '../utils/isPromiseLike';
 import { CircuitOptions, DEFAULT_OPTIONS } from './CircuitOptions';
 import { CircuitStateFactory } from './CircuitState/factory';
@@ -27,10 +28,12 @@ export function circuit(
   const { interval, onError, errorFilter = () => true, scope = 'class', policy = 'errors' }
     = options;
 
+  const hashService = new HashService();
   const policyFactory = new PolicyFactory(threshold, policy);
   const cirucitStateFactory =
     new CircuitStateFactory(timeout, interval, errorFilter, policyFactory);
-  const circuitStateStorage = new CircuitStateStorageFactory(scope, cirucitStateFactory).create();
+  const circuitStateStorage =
+    new CircuitStateStorageFactory(scope, cirucitStateFactory, hashService).create();
 
   const raise = raiseStrategy({ onError }, 'throw');
 
