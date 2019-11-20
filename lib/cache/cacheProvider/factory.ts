@@ -4,15 +4,14 @@ import { CacheProvider } from './CacheProvider';
 import { ClassCacheProvider } from './ClassCacheProvider';
 import { InstanceCacheProvider } from './InstanceCacheProvider';
 
-export class CacheProviderFactory implements Factory<CacheProvider> {
+export class CacheProviderFactory implements Factory<CacheProvider, ['class' | 'instance']> {
 
   constructor(
-    private readonly scope: 'class' | 'instance',
     private readonly cacheFactory: CacheFactory,
   ) { }
 
-  public create() {
-    switch (this.scope) {
+  public create(scope: 'class' | 'instance') {
+    switch (scope) {
       case 'class':
         return new ClassCacheProvider(this.cacheFactory);
 
@@ -20,7 +19,7 @@ export class CacheProviderFactory implements Factory<CacheProvider> {
         return new InstanceCacheProvider(this.cacheFactory);
 
       default:
-        throw new Error(`@cache invalid scope option: ${this.scope}.`);
+        throw new Error(`@cache invalid scope option: ${scope}.`);
     }
   }
 

@@ -52,6 +52,20 @@ describe('HashService', () => {
       expect(service.calculate(firstObject)).not.equals(service.calculate(secondObject));
     });
 
+    it('should return same keys for objects what are deep equals', () => {
+      const firstArray = [{ a: 1 }];
+      const secondArray = [{ a: 1 }];
+
+      expect(service.calculate(firstArray)).to.equals(service.calculate(secondArray));
+    });
+
+    it('should return different keys for objects with different keys at more deep level', () => {
+      const firstArray = [{ a: 1 }];
+      const secondArray = [{ b: 1 }];
+
+      expect(service.calculate(firstArray)).not.equals(service.calculate(secondArray));
+    });
+
   });
 
 });

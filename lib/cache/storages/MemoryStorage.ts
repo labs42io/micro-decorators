@@ -4,7 +4,7 @@ export class MemoryStorage implements Storage {
 
   private readonly storage = new Map<string, any>();
 
-  constructor(private readonly limit?: number) { }
+  constructor(private readonly limit: number = Infinity) { }
 
   public async set<V>(key: string, value: V): Promise<this> {
     this.checkSize();
@@ -29,7 +29,7 @@ export class MemoryStorage implements Storage {
   }
 
   private checkSize(): void {
-    if (typeof this.limit === 'number' && this.storage.size >= this.limit) {
+    if (this.storage.size >= this.limit) {
       this.delete(this.storage.keys().next().value);
     }
   }

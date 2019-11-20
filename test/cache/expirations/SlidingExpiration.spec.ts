@@ -30,15 +30,22 @@ describe('@cache SlidingExpiration', () => {
         expect(spy.calledOnce).to.be.true;
       });
 
+      it('should call clearCallback with given key', async () => {
+        const spy = sinon.spy();
+
+        service.add('key', spy);
+        await delay(timeout);
+
+        expect(spy.calledWith('key')).to.be.true;
+      });
+
     });
 
     describe('existing key', () => {
 
-      beforeEach(() => service['expirations'].set('key', setTimeout(() => { }, timeout) as any));
-
       it('should remove existing expiration', async () => {
         const expirationSpy = sinon.spy();
-        service['expirations'].set('key', setTimeout(() => expirationSpy(), timeout) as any);
+        service.add('key', expirationSpy);
 
         service.add('key', () => { });
 
@@ -49,12 +56,24 @@ describe('@cache SlidingExpiration', () => {
 
       it('should call clearCallback after timeout ms', async () => {
         const spy = sinon.spy();
+        service.add('key', () => { });
 
         service.add('key', spy);
 
         await delay(timeout);
 
         expect(spy.calledOnce).to.be.true;
+      });
+
+      it('should call clearCallback with given key', async () => {
+        const spy = sinon.spy();
+        service.add('key', () => { });
+
+        service.add('key', spy);
+
+        await delay(timeout);
+
+        expect(spy.calledWith('key')).to.be.true;
       });
 
     });

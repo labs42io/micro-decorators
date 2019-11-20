@@ -1,18 +1,23 @@
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 import { cache, CacheOptions } from '../../lib';
-import { delay, executionTime } from '../utils';
+import { delay } from '../utils';
 
 describe('@cache', () => {
 
-  const delayTime = 8;
-  const timePrecision = 3;
+  const delayTime = 2;
+  const timeout = 6;
+  let methodStub: sinon.SinonStub<[], unknown>;
 
-  const factory = (timeout: number, options?: CacheOptions) => {
+  beforeEach(() => methodStub = sinon.stub());
+
+  const factory = (timeout: number, options?: CacheOptions, methodSpy = methodStub) => {
     class Test {
 
       @cache(timeout, options)
       public async method(n: number): Promise<number> {
+        methodSpy();
         await delay(delayTime);
         return n + 1;
       }
@@ -23,25 +28,25 @@ describe('@cache', () => {
   };
 
   it('should use cached value if method is called with same arguments', async () => {
-    const timeout = 1000;
-    const options: CacheOptions = { size: 3 };
-    const instance = new (factory(timeout, options));
+    const instance = new (factory(timeout));
 
     await instance.method(42);
-    const time = await executionTime(() => instance.method(42));
+    methodStub.reset();
 
-    expect(time).to.be.approximately(0, timePrecision);
+    await instance.method(42);
+
+    expect(methodStub.called).to.be.false;
   });
 
   it('should not use cached value if method is called with different arguments', async () => {
-    const timeout = 1000;
-    const options: CacheOptions = { size: 3 };
-    const instance = new (factory(timeout, options));
+    const instance = new (factory(timeout));
 
     await instance.method(42);
-    const time = await executionTime(() => instance.method(24));
+    methodStub.reset();
 
-    expect(time).to.be.approximately(delayTime, timePrecision);
+    await instance.method(24);
+
+    expect(methodStub.calledOnce).to.be.true;
   });
 
   it('should propagate error if method reject', () => {
@@ -60,10 +65,8 @@ describe('@cache', () => {
 
   describe('options values', () => {
 
-    const timeout = 1000;
-
     it('should work without options', () => {
-      expect(() => new (factory(timeout))).to.not.throw();
+      expect(() => new (factory(timeout))().method(42)).to.not.throw();
     });
 
     it('should work with correct options', () => {
@@ -74,7 +77,7 @@ describe('@cache', () => {
         size: 300,
       };
 
-      expect(() => new (factory(timeout, options))).to.not.throw();
+      expect(() => new (factory(timeout, options))().method(42)).to.not.throw();
     });
 
     it('should work with one parameter', () => {
@@ -90,28 +93,31 @@ describe('@cache', () => {
         return Test;
       };
 
-      expect(test).not.to.throw();
+      expect(() => new (test())().method()).not.to.throw();
     });
 
     describe('should throw for wrong options', () => {
 
       it('should throw if expiration is not a valid value', () => {
         const options: CacheOptions = { expiration: 'abc' as any };
-        const expectedError = '@cache Expiration type is not supported: abc.';
         const instance = new (factory(timeout, options));
+
+        const expectedError = '@cache Expiration type is not supported: abc.';
         expect(instance.method(42)).to.be.rejectedWith(expectedError);
       });
 
       it('should throw if scope is not a valid value', () => {
         const options: CacheOptions = { scope: 'xyz' as any };
+
         const expectedError = '@cache invalid scope option: xyz.';
-        expect(() => new (factory(timeout, options))).to.throw(expectedError);
+        expect(() => new (factory(timeout, options))().method(42)).to.throw(expectedError);
       });
 
       it('should throw if storage is not a valid value', () => {
         const options: CacheOptions = { storage: 'qwe' as any };
-        const expectedError = '@cache Storage type is not supported: qwe.';
         const instance = new (factory(timeout, options));
+
+        const expectedError = '@cache Storage type is not supported: qwe.';
         expect(instance.method(42)).to.be.rejectedWith(expectedError);
       });
 
@@ -122,7 +128,8 @@ describe('@cache', () => {
   describe("it shouldn't change method behaivor", () => {
 
     it('should return same value as without decorator', async () => {
-      const instance = new (factory(1000));
+      const instance = new (factory(timeout));
+
       expect(await instance.method(42)).to.equals(43);
     });
 
@@ -147,38 +154,41 @@ describe('@cache', () => {
       describe('absolute', () => {
 
         const options: CacheOptions = { expiration: 'absolute' };
+        let instance: InstanceType<ReturnType<typeof factory>>;
+
+        beforeEach(() => instance = new (factory(timeout, options)));
 
         it('should return cached value', async () => {
-          const timeout = 20;
-          const instance = new (factory(timeout, options));
           await instance.method(42);
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(0, timePrecision);
+          methodStub.reset();
+          await instance.method(42);
+
+          expect(methodStub.called).to.be.false;
         });
 
-        it('should exprie after given timeout', async () => {
-          const timeout = delayTime + 5;
-          const instance = new (factory(timeout, options));
+        it('should expire after given timeout', async () => {
+          await instance.method(42);
+          methodStub.reset();
+
+          await delay(timeout * 2);
+
           await instance.method(42);
 
-          await delay(timeout + 1);
-
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(delayTime, timePrecision);
+          expect(methodStub.calledOnce).to.be.true;
         });
 
         it('should not refresh if was call before expire', async () => {
-          const timeout = delayTime + 2;
-          const instance = new (factory(timeout, options));
           await instance.method(42);
 
           await delay(timeout / 2);
           await instance.method(42);
+          methodStub.reset();
           await delay(timeout / 2);
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(delayTime, timePrecision);
+          await instance.method(42);
+
+          expect(methodStub.calledOnce).to.be.true;
         });
 
       });
@@ -186,38 +196,39 @@ describe('@cache', () => {
       describe('sliding', () => {
 
         const options: CacheOptions = { expiration: 'sliding' };
+        let instance: InstanceType<ReturnType<typeof factory>>;
+
+        beforeEach(() => instance = new (factory(timeout, options)));
 
         it('should return cached value', async () => {
-          const timeout = 20;
-          const instance = new (factory(timeout, options));
+          await instance.method(42);
+          methodStub.reset();
+
           await instance.method(42);
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(0, timePrecision);
+          expect(methodStub.called).to.be.false;
         });
 
         it('should expire after given timeout', async () => {
-          const timeout = delayTime;
-          const instance = new (factory(timeout, options));
           await instance.method(42);
+          methodStub.reset();
 
-          await delay(timeout + delayTime + 1);
+          await delay(timeout * 2);
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(delayTime, timePrecision);
+          await instance.method(42);
+          expect(methodStub.calledOnce).to.be.true;
         });
 
         it('should refresh if was call before expire', async () => {
-          const timeout = 3 * delayTime;
-          const instance = new (factory(timeout, options));
           await instance.method(42);
 
-          await delay(timeout / 3);
+          await delay(timeout / 2);
           await instance.method(42);
-          await delay(2 * timeout / 3);
+          methodStub.reset();
+          await delay(timeout / 2);
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(0, timePrecision);
+          await instance.method(42);
+          expect(methodStub.called).to.be.false;
         });
 
       });
@@ -228,58 +239,67 @@ describe('@cache', () => {
 
       describe('class', () => {
 
-        const timeout = 1000;
         const options: CacheOptions = { scope: 'class' };
+        let constructor: ReturnType<typeof factory>;
+        let instance: InstanceType<typeof constructor>;
+
+        beforeEach(() => {
+          constructor = factory(timeout, options);
+          instance = new constructor();
+        });
 
         it('should return cached value for same instance of class', async () => {
-          const instance = new (factory(timeout, options));
           await instance.method(42);
+          methodStub.reset();
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(0, timePrecision);
+          await instance.method(42);
+          expect(methodStub.called).to.be.false;
         });
 
         it('should return cached value for every instances of class', async () => {
-          const constructor = factory(timeout, options);
           await new constructor().method(42);
+          methodStub.reset();
 
-          const time = await executionTime(() => new constructor().method(42));
-          expect(time).to.be.approximately(0, timePrecision);
+          await instance.method(42);
+          expect(methodStub.called).to.be.false;
         });
 
         it('should not use cached value if is another class', async () => {
-          const firstConstructor = factory(timeout, options);
-          const secondConstructor = factory(timeout, options);
+          const anotherConstructor = factory(timeout, options);
+          await new anotherConstructor().method(42);
+          methodStub.reset();
 
-          const firstInstance = new firstConstructor();
-          const secondInstance = new secondConstructor();
-
-          await firstInstance.method(42);
-          const time = await executionTime(() => secondInstance.method(42));
-          expect(time).to.be.gte(delayTime);
+          await instance.method(42);
+          expect(methodStub.calledOnce).to.be.true;
         });
 
       });
 
       describe('instance', () => {
 
-        const timeout = 1000;
         const options: CacheOptions = { scope: 'instance' };
+        let constructor: ReturnType<typeof factory>;
+        let instance: InstanceType<typeof constructor>;
+
+        beforeEach(() => {
+          constructor = factory(timeout, options);
+          instance = new constructor();
+        });
 
         it('should return cached value for same instance of class', async () => {
-          const instance = new (factory(timeout, options));
           await instance.method(42);
+          methodStub.reset();
 
-          const time = await executionTime(() => instance.method(42));
-          expect(time).to.be.approximately(0, timePrecision);
+          await instance.method(42);
+          expect(methodStub.called).to.be.false;
         });
 
         it('should not return cached value for differenct instances of class', async () => {
-          const constructor = factory(timeout, options);
           await new constructor().method(42);
+          methodStub.reset();
 
-          const time = await executionTime(() => new constructor().method(42));
-          expect(time).to.be.approximately(delayTime, timePrecision);
+          await instance.method(42);
+          expect(methodStub.calledOnce).to.be.true;
         });
 
       });
@@ -288,36 +308,38 @@ describe('@cache', () => {
 
     describe('size', () => {
 
-      const timeout = 1000;
+      const options: CacheOptions = { size: 2 };
+      let instance: InstanceType<ReturnType<typeof factory>>;
+
+      beforeEach(() => instance = new (factory(timeout, options)));
 
       it('should cache value if storage limit is not reached', async () => {
-        const options: CacheOptions = { size: 3 };
-        const instance = new (factory(timeout, options));
+        await instance.method(1);
+        await instance.method(2);
+        methodStub.reset();
 
-        await Promise.all([instance.method(42), instance.method(24)]);
-        const times = await Promise.all([
-          executionTime(() => instance.method(42)),
-          executionTime(() => instance.method(24)),
-        ]);
-
-        times.forEach(time => expect(time).to.be.approximately(0, timePrecision));
+        await instance.method(2);
+        expect(methodStub.called).to.be.false;
       });
 
-      it('should remove oldes value if storage limit is reached', async () => {
-        const options: CacheOptions = { size: 1 };
-        const instance = new (factory(timeout, options));
+      it('should cache value if storage is reached', async () => {
+        await instance.method(1);
+        await instance.method(2);
+        await instance.method(3);
+        methodStub.reset();
 
-        await Promise.all([
-          instance.method(42),
-          instance.method(24),
-        ]);
-        const [firstTime, secondTime] = await Promise.all([
-          executionTime(() => instance.method(42)),
-          executionTime(() => instance.method(24)),
-        ]);
+        await instance.method(3);
+        expect(methodStub.called).to.be.false;
+      });
 
-        expect(firstTime).to.be.approximately(delayTime, timePrecision);
-        expect(secondTime).to.be.approximately(0, timePrecision);
+      it('should remove oldest value if storage limit is reached', async () => {
+        await instance.method(1);
+        await instance.method(2);
+        await instance.method(3);
+        methodStub.reset();
+
+        await instance.method(1);
+        expect(methodStub.calledOnce).to.be.true;
       });
 
     });

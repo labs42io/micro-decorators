@@ -55,7 +55,9 @@ describe('@cache ClassCacheProvider', () => {
     });
 
     it('should not call CacheFactory.create if instance of cache service exists', () => {
-      service['cache'] = {} as any;
+      cacheFactoryStub.create.returns({} as any);
+      service.get();
+      cacheFactoryStub.create.reset();
 
       service.get();
 

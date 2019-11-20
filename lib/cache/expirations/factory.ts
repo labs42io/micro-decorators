@@ -3,15 +3,14 @@ import { AbsoluteExpiration } from './AbsoluteExpiration';
 import { Expiration } from './Expiration';
 import { SlidingExpiration } from './SlidingExpiration';
 
-export class ExpirationFactory implements Factory<Expiration> {
+export class ExpirationFactory implements Factory<Expiration, ['absolute' | 'sliding']> {
 
   constructor(
     private readonly timeout: number,
-    private readonly expiration: 'absolute' | 'sliding',
   ) { }
 
-  public create(): Expiration {
-    switch (this.expiration) {
+  public create(expiration: 'absolute' | 'sliding'): Expiration {
+    switch (expiration) {
       case 'absolute':
         return new AbsoluteExpiration(this.timeout);
 
@@ -19,7 +18,7 @@ export class ExpirationFactory implements Factory<Expiration> {
         return new SlidingExpiration(this.timeout);
 
       default:
-        throw new Error(`@cache Expiration type is not supported: ${this.expiration}.`);
+        throw new Error(`@cache Expiration type is not supported: ${expiration}.`);
     }
   }
 

@@ -31,13 +31,24 @@ describe('@cache AbsoluteExpiration', () => {
         expect(spy.calledOnce).to.be.true;
       });
 
+      it('should call clearCallback with given key', async () => {
+        const spy = sinon.spy();
+        const key = 'key';
+
+        service.add('key', spy);
+
+        await delay(timeout);
+
+        expect(spy.calledWith(key)).to.be.true;
+      });
+
     });
 
     describe('existing key', () => {
 
       it('should not update expiration', async () => {
         const spy = sinon.spy();
-        service['expirations'].add('key');
+        service.add('key', () => { });
 
         service.add('key', spy);
 
@@ -47,18 +58,32 @@ describe('@cache AbsoluteExpiration', () => {
       });
 
       it('should call initial callback', async () => {
-        const firstSpy = sinon.spy();
-        const secondSpy = sinon.spy();
+        const spy = sinon.spy();
 
-        service.add('key', firstSpy);
-
-        await delay(timeout / 2);
-
-        service.add('key', secondSpy);
+        service.add('key', spy);
 
         await delay(timeout / 2);
 
-        expect(firstSpy.calledOnce).to.be.true;
+        service.add('key', () => { });
+
+        await delay(timeout / 2);
+
+        expect(spy.calledOnce).to.be.true;
+      });
+
+      it('should call initial callback with given key', async () => {
+        const spy = sinon.spy();
+        const key = 'key';
+
+        service.add(key, spy);
+
+        await delay(timeout / 2);
+
+        service.add(key, () => { });
+
+        await delay(timeout / 2);
+
+        expect(spy.calledWith(key)).to.be.true;
       });
 
     });

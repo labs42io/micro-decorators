@@ -5,24 +5,27 @@ import { MemoryStorage } from '../../../lib/cache/storages/MemoryStorage';
 
 describe('@cache StorageFactory', () => {
 
+  const limit = 42;
+  let service: StorageFactory;
+
+  beforeEach(() => service = new StorageFactory(limit));
+
   describe('constructor', () => {
 
-    it('should create', () => {
-      expect(new StorageFactory(3, 'memory')).to.be.instanceOf(StorageFactory);
-    });
+    it('should create', () => expect(service).to.be.instanceOf(StorageFactory));
 
   });
 
   describe('create', () => {
 
     it('should return instance of StorageFactory if storage is "memory"', () => {
-      expect(new StorageFactory(3, 'memory').create()).to.be.instanceOf(MemoryStorage);
+      expect(service.create('memory')).to.be.instanceOf(MemoryStorage);
     });
 
     it('should throw error if storate is not an valid storage', () => {
-      const storage = 'memory3';
+      const storage = 'memory3' as any;
       const message = `@cache Storage type is not supported: ${storage}.`;
-      expect(() => new StorageFactory(3, 'memory3' as any).create()).to.throw(message);
+      expect(() => service.create(storage)).to.throw(message);
     });
 
   });

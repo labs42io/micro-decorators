@@ -31,8 +31,8 @@ export function cache(
 
     descriptor.value = async function (...args: any[]) {
       const cacheService = cacheProvider.get(this);
-      const isCached = await cacheService.has(args);
 
+      const isCached = await cacheService.has(args);
       if (isCached) {
         return cacheService.get(args);
       }
@@ -64,11 +64,17 @@ function parseParameters(
   };
 }
 
-function createCacheProvider(timeout: number, options: CacheOptions): CacheProvider {
-  const hashService = new HashService();
-  const expirationFactory = new ExpirationFactory(timeout, options.expiration);
-  const storageFactory = new StorageFactory(options.size, options.storage);
-  const cacheFactory = new CacheFactory(hashService, expirationFactory, storageFactory);
+function createCacheProvider(
+  timeout: number,
+  { expiration, scope, size, storage }: CacheOptions,
+): CacheProvider {
 
-  return new CacheProviderFactory(options.scope, cacheFactory).create();
+  const hashService = new HashService();
+  const expirationFactory = new ExpirationFactory(timeout);
+  const storageFactory = new StorageFactory(size);
+
+  const cacheFactory =
+    new CacheFactory(hashService, expirationFactory, storageFactory, expiration, storage);
+
+  return new CacheProviderFactory(cacheFactory).create(scope);
 }

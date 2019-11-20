@@ -1,3 +1,3 @@
-export interface Factory<T> {
-  create(): T;
+export interface Factory<T, A extends any[] | never = any[]> {
+  create(...args: A): T;
 }
