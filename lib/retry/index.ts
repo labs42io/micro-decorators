@@ -1,7 +1,5 @@
 import { Retryer } from './Retryer';
-import { DEFAULT_OPTIONS, MethodOptions, RetryOptions } from './RetryOptions';
-import { ScopeCounter } from './ScopeCounter';
-import { WaitStrategy } from './WaitStrategy';
+import { DEFAULT_OPTIONS, RetryOptions } from './RetryOptions';
 
 export { RetryOptions };
 
@@ -16,40 +14,12 @@ export function retry(attempts: number, options?: RetryOptions): any {
   return function (target: any, propertyKey: any, descriptor: PropertyDescriptor) {
 
     const method: Function = descriptor.value;
-    const retryOptions = { ...DEFAULT_OPTIONS, ...options };
-    const waitStrategy = new WaitStrategy(retryOptions.waitPattern);
-    const scope = new ScopeCounter();
 
     descriptor.value = function () {
-      const counter = scope.getCounter(this);
+      const args = arguments;
+      const retryer = new Retryer(options, () => method.apply(this, args), this, attempts);
 
-      let count = counter.get();
-
-      const methodOptions: MethodOptions = {
-        instance: this,
-        args: arguments,
-        method: target[propertyKey],
-      };
-      const retryer = new Retryer(retryOptions, methodOptions);
-
-      try {
-        let response = method.apply(this, arguments);
-        const isPromiseLike = response && typeof response.then === 'function';
-
-        if (isPromiseLike) {
-          response = response.catch(err =>
-            waitStrategy.wait(count)
-              .then(() => {
-                count = counter.next();
-                return retryer.retry(err, attempts, count);
-              }));
-        }
-
-        return response;
-      } catch (err) {
-        count = counter.next();
-        return retryer.retry(err, attempts, count);
-      }
+      return retryer.getResponse();
     };
 
     return descriptor;

@@ -1,15 +1,11 @@
 import { expect } from 'chai';
-import { retry } from '../lib';
-import { Counter } from '../lib/retry/Counter';
-import { Retryer } from '../lib/retry/Retryer';
-import { WaitStrategy } from '../lib/retry/WaitStrategy';
-import { MethodOptions } from '../lib/retry/RetryOptions';
+import { retry } from '../../lib';
 
 describe('@retry', () => {
   describe('When method is synchrone.', () => {
     describe('When method should return value.', () => {
       describe('When method should work only with attempts number.', () => {
-        it('should resolve with expected result and attempts > 0.', () => {
+        it('should resolve with expected result and attempts greater than 0.', () => {
           class TestClass {
             @retry(3)
             test() {
@@ -23,7 +19,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts = 0.', () => {
+        it('should resolve with expected result and attempts equal with 0.', () => {
           class TestClass {
             @retry(0)
             test() {
@@ -37,7 +33,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts < 0.', () => {
+        it('should resolve with expected result and attempts less than 0.', () => {
           class TestClass {
             @retry(-3)
             test() {
@@ -51,7 +47,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts === null.', () => {
+        it('should resolve with expected result and attempts equal with null.', () => {
           class TestClass {
             @retry(-3)
             test() {
@@ -65,7 +61,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts === undefined.', () => {
+        it('should resolve with expected result and attempts equal with undefined.', () => {
           class TestClass {
             @retry(undefined)
             test() {
@@ -83,7 +79,7 @@ describe('@retry', () => {
 
     describe('When method should throw error.', () => {
       describe('When method should work only with attempts number.', () => {
-        it('should reject with expected error and attempts > 0.', () => {
+        it('should reject with expected error and attempts greater than 0.', () => {
           class TestClass {
             @retry(3)
             test() {
@@ -96,7 +92,7 @@ describe('@retry', () => {
           expect(() => target.test()).to.throw('Retry failed.');
         });
 
-        it('should resolve with expected result and attempts = 0.', () => {
+        it('should resolve with expected result and attempts equal with 0.', () => {
           class TestClass {
             @retry(0)
             test() {
@@ -109,7 +105,7 @@ describe('@retry', () => {
           expect(() => target.test()).to.throw('Retry failed.');
         });
 
-        it('should reject with expected error and attempts < 0.', () => {
+        it('should reject with expected error and attempts less than 0.', () => {
           class TestClass {
             @retry(-3)
             test() {
@@ -122,7 +118,7 @@ describe('@retry', () => {
           expect(() => target.test()).to.throw('Retry failed.');
         });
 
-        it('should reject with expected error and attempts === null.', () => {
+        it('should reject with expected error and attempts equal with null.', () => {
           class TestClass {
             @retry(-3)
             test() {
@@ -135,7 +131,7 @@ describe('@retry', () => {
           expect(() => target.test()).to.throw('Retry failed.');
         });
 
-        it('should reject with expected error and attempts === undefined.', () => {
+        it('should reject with expected error and attempts equal with undefined.', () => {
           class TestClass {
             @retry(undefined)
             test() {
@@ -222,7 +218,7 @@ describe('@retry', () => {
   describe('When method is asynchrone.', () => {
     describe('When method should return value.', () => {
       describe('When method should work only with attempts number.', () => {
-        it('should resolve with expected result and attempts > 0.', async () => {
+        it('should resolve with expected result and attempts greater than 0.', async () => {
           class TestClass {
             @retry(3)
             async test() {
@@ -236,7 +232,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts = 0.', async () => {
+        it('should resolve with expected result and attempts equal with 0.', async () => {
           class TestClass {
             @retry(0)
             async test() {
@@ -250,7 +246,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts < 0.', async () => {
+        it('should resolve with expected result and attempts less than 0.', async () => {
           class TestClass {
             @retry(-3)
             async test() {
@@ -264,7 +260,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts === null.', async () => {
+        it('should resolve with expected result and attempts equal with null.', async () => {
           class TestClass {
             @retry(-3)
             async test() {
@@ -278,7 +274,7 @@ describe('@retry', () => {
           expect(result).to.equal('Success 42.');
         });
 
-        it('should resolve with expected result and attempts === undefined.', async () => {
+        it('should resolve with expected result and attempts equal with undefined.', async () => {
           class TestClass {
             @retry(undefined)
             async test() {
@@ -296,10 +292,10 @@ describe('@retry', () => {
 
     describe('When method should throw error.', () => {
       describe('When method should work only with attempts number.', () => {
-        it('should reject with expected error and attempts > 0.', async () => {
+        it('should reject with expected error and attempts greater than 0.', async () => {
           class TestClass {
             @retry(3)
-            test() {
+            async test() {
               return Promise.reject('Error 42.');
             }
           }
@@ -309,7 +305,7 @@ describe('@retry', () => {
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
         });
 
-        it('should resolve with expected result and attempts = 0.', async () => {
+        it('should resolve with expected result and attempts equal with 0.', async () => {
           class TestClass {
             @retry(0)
             async test() {
@@ -322,7 +318,7 @@ describe('@retry', () => {
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
         });
 
-        it('should reject with expected error and attempts < 0.', async () => {
+        it('should reject with expected error and attempts less than 0.', async () => {
           class TestClass {
             @retry(-3)
             async test() {
@@ -335,7 +331,7 @@ describe('@retry', () => {
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
         });
 
-        it('should reject with expected error and attempts === null.', async () => {
+        it('should reject with expected error and attempts equal with null.', async () => {
           class TestClass {
             @retry(-3)
             async test() {
@@ -348,7 +344,7 @@ describe('@retry', () => {
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
         });
 
-        it('should reject with expected error and attempts === undefined.', async () => {
+        it('should reject with expected error and attempts equal with undefined.', async () => {
           class TestClass {
             @retry(undefined)
             async test() {
@@ -359,28 +355,6 @@ describe('@retry', () => {
           const target = new TestClass();
 
           await expect(target.test()).to.eventually.be.rejectedWith('Retry failed.');
-        });
-
-        // tslint:disable-next-line:max-line-length
-        it('should work if the method fails 2 times and succeeds only on the third time.', async () => {
-          class TestClass {
-            public count = 1;
-            @retry(3)
-            async test() {
-              if (this.count === 3) {
-                return Promise.resolve('Success 42!');
-              }
-
-              this.count += 1;
-              return Promise.reject(new Error('Error 42.'));
-            }
-          }
-
-          const target = new TestClass();
-          const response = await target.test();
-
-          expect(response).to.equal('Success 42!');
-          expect(target.count).to.equal(3);
         });
       });
 
@@ -563,93 +537,4 @@ describe('@retry', () => {
       });
     });
   });
-
-  describe('Counter class', () => {
-    let counter: Counter;
-
-    beforeEach(() => {
-      counter = new Counter();
-    });
-
-    it('should return count of counter when inited', () => {
-      const count = counter.get();
-
-      expect(count).to.equal(0);
-    });
-
-    it('should return incremented count of counter', () => {
-      let count = counter.get();
-      counter.next();
-      count = counter.next();
-
-      expect(count).to.equal(2);
-    });
-  });
-
-  describe('WaitStrategy class', () => {
-    let strategy: WaitStrategy;
-
-    it('should delay expected time when pattern is of type number', async () => {
-      strategy = new WaitStrategy(400);
-      const delay = await getFunctionDelay(() => strategy.wait(0));
-      expect(delay).to.be.approximately(400, 5);
-    });
-
-    it('should delay expected time when pattern is of type function', async () => {
-      strategy = new WaitStrategy(() => { return 300; });
-      const delay = await getFunctionDelay(() => strategy.wait(1));
-      expect(delay).to.be.approximately(300, 5);
-    });
-
-    it('should delay expected time when pattern is of type array', async () => {
-      strategy = new WaitStrategy([100, 300, 200]);
-
-      let delay = await getFunctionDelay(() => strategy.wait(0));
-      expect(delay).to.be.approximately(100, 5);
-
-      delay = await getFunctionDelay(() => strategy.wait(1));
-      expect(delay).to.be.approximately(300, 5);
-
-      delay = await getFunctionDelay(() => strategy.wait(2));
-      expect(delay).to.be.approximately(200, 5);
-    });
-  });
-
-  describe('Retryer class', () => {
-    let retryer: Retryer;
-
-    it('should throw error if no attempts', () => {
-      const options = {};
-      const methodOptions: MethodOptions = {
-        instance: {},
-        args: {},
-        method: () => { },
-      };
-
-      retryer = new Retryer(options, methodOptions);
-
-      expect(() => retryer.retry(new Error(), null as any, 1)).to.throw('Retry failed.');
-    });
-
-    it('should throw error if retry count exeeded attempts count', () => {
-      const options = {};
-      const methodOptions: MethodOptions = {
-        instance: {},
-        args: {},
-        method: () => { },
-      };
-
-      retryer = new Retryer(options, methodOptions);
-
-      expect(() => retryer.retry(new Error(), 3, 4)).to.throw('Retry failed.');
-    });
-  });
 });
-
-async function getFunctionDelay(method: Function): Promise<number> {
-  const time = new Date().getTime();
-
-  await method();
-
-  return new Date().getTime() - time;
-}
