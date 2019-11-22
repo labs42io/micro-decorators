@@ -13,19 +13,15 @@ export type BulkheadOptions = {
 
   /**
    * Sets the behavior of handling the case when queue limit is reached.
-   * When `throw` (default) then throws immediately with an error.
-   * When `reject` then returns a rejected promise with error
-   * When `throw` then throws immediately with an error.
-   * When `ignore` then doesn't throw any error and immediately
-   * terminates execution (returns undefined).
+   * When `reject` (default) then returns a rejected promise with error
    * When `ignoreAsync` then doesn't throw any error and immediately
    * returns a resolved promise.
    */
-  onError?: 'throw' | 'reject' | 'ignore' | 'ignoreAsync',
+  onError?: 'reject' | 'ignoreAsync',
 };
 
 export const DEFAULT_OPTIONS: Readonly<BulkheadOptions> = {
   scope: 'class',
-  onError: 'throw',
+  onError: 'reject',
   size: undefined,
 };
