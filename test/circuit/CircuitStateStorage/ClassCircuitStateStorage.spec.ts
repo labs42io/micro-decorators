@@ -27,27 +27,28 @@ describe('@circuit ClassCircuitStateStorage', () => {
     it('should create new instance of circuit state if is first call and return it', () => {
       const expectedResult = {} as any;
       circuitStateFactoryStub.create.returns(expectedResult);
-      service['circuitState'] = null;
 
       expect(service.get()).to.equals(expectedResult);
     });
 
     it('should return existent instance of circuit state if is not first call', () => {
-      const instance = service['circuitState'] = {} as any;
+      const instance = {} as any;
+      circuitStateFactoryStub.create.returns(instance);
 
       expect(service.get()).to.equals(instance);
     });
 
     it('should use circuitStateFactory.create to create new instance of CircuitState', () => {
-      service['circuitState'] = null;
-
       service.get();
 
       expect(circuitStateFactoryStub.create.calledOnce).to.be.true;
     });
 
     it('should not call circuitStateFactory.create if CircuitState instance already exists', () => {
-      service['circuitState'] = {} as any;
+      const instance = {} as any;
+      circuitStateFactoryStub.create.returns(instance);
+      service.get();
+      circuitStateFactoryStub.create.reset();
 
       service.get();
 

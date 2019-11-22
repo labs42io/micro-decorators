@@ -37,8 +37,9 @@ describe('@circuit ArgumentsCircuitStateStorage', () => {
     });
 
     it('should not create new instance of CircuitState if have one for current arguments', () => {
-      const expected = {} as any;
-      service['argumentsStorage'].set(hashedKey, expected);
+      circuitStateFactoryStub.create.returns({} as any);
+      service.get([]);
+      circuitStateFactoryStub.create.reset();
 
       service.get([]);
 
@@ -48,7 +49,10 @@ describe('@circuit ArgumentsCircuitStateStorage', () => {
     it('should create CircuitState if is called first time for current arguments', () => {
       const args = [];
 
-      service['argumentsStorage'].set({ 4: 2 } as any, undefined);
+      circuitStateFactoryStub.create.returns({} as any);
+      service.get([{ some: 'arguments' }]);
+      hashServiceStub.calculate.returns('another hash');
+
       const expected = {} as any;
       circuitStateFactoryStub.create.returns(expected);
 
@@ -62,7 +66,7 @@ describe('@circuit ArgumentsCircuitStateStorage', () => {
     });
 
     it('should call hashService.calculate with correct arguments', () => {
-      const args = [];
+      const args = [{ some: 'arguments' }];
 
       service.get(args);
 
@@ -72,7 +76,9 @@ describe('@circuit ArgumentsCircuitStateStorage', () => {
     it('should use create CircuitState if is called not first time for current arguments', () => {
       const expected = {} as any;
       const args = [];
-      service['argumentsStorage'].set(hashedKey, expected);
+      circuitStateFactoryStub.create.returns(expected);
+      service.get(args);
+      circuitStateFactoryStub.create.returns(null);
 
       expect(service.get(args)).to.equals(expected);
     });

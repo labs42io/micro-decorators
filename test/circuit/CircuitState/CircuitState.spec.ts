@@ -9,7 +9,7 @@ import { delay } from '../../utils';
 describe('@circuit CircuitState', () => {
 
   const timeout = 5;
-  const interval = undefined;
+  const interval = timeout * 2;
   let errorFilterStub: sinon.SinonStub<[Error], boolean>;
   let policyStub: sinon.SinonStubbedInstance<Policy>;
   let clearCallbackStub: sinon.SinonStub<[], unknown>;
@@ -33,19 +33,21 @@ describe('@circuit CircuitState', () => {
   describe('allow execution', () => {
 
     it('shuld return true if current state is open', () => {
-      service['state'] = 'open';
-
       expect(service.allowExecution()).to.be.true;
     });
 
-    it('should return true if current state is half-open', () => {
-      service['state'] = 'half-open';
+    it('should return true if current state is half-open', async () => {
+      policyStub.allowExecution.returns(false);
+      service.register(new Error('error'));
+
+      await delay(timeout);
 
       expect(service.allowExecution()).to.be.true;
     });
 
     it('should return false if current state is close', () => {
-      service['state'] = 'close';
+      policyStub.allowExecution.returns(false);
+      service.register(new Error('error'));
 
       expect(service.allowExecution()).to.be.false;
     });
@@ -62,17 +64,22 @@ describe('@circuit CircuitState', () => {
 
     describe('if state is half-open', () => {
 
-      it('should became open if was called with success', () => {
-        service['state'] = 'half-open';
+      beforeEach(async () => {
+        policyStub.allowExecution.returns(false);
+        service.register(new Error('error'));
 
+        await delay(timeout);
+
+        policyStub.allowExecution.returns(true);
+      });
+
+      it('should became open if was called with success', () => {
         service.register();
 
         expect(service.allowExecution()).to.be.true;
       });
 
       it('should became close if was called with error', () => {
-        service['state'] = 'half-open';
-
         service.register(new Error('42'));
 
         expect(service.allowExecution()).to.be.false;
@@ -80,8 +87,6 @@ describe('@circuit CircuitState', () => {
 
       it('should became open if was called with error but errorFilter returned false', () => {
         errorFilterStub.returns(false);
-
-        service['state'] = 'half-open';
 
         service.register(new Error('42'));
 
@@ -92,29 +97,31 @@ describe('@circuit CircuitState', () => {
 
     describe('when state became open', () => {
 
-      it('should call policy.reset', () => {
-        service['state'] = 'half-open';
+      beforeEach(async () => {
+        policyStub.allowExecution.returns(false);
+        service.register(new Error('error'));
 
+        await delay(timeout);
+
+        policyStub.allowExecution.returns(true);
+      });
+
+      it('should call policy.reset', () => {
         service.register();
 
         expect(policyStub.reset.calledOnce).to.be.true;
       });
 
       it('should clear timeouts', async () => {
-        service['state'] = 'half-open';
-        const stubFunction = sinon.stub();
-        service['timers'] = new Set([setTimeout(stubFunction, interval) as any]);
+        policyStub.deleteCallData.reset();
 
         service.register();
         await delay(interval);
 
-        expect(stubFunction.called).to.be.false;
+        expect(policyStub.deleteCallData.calledOnce).to.be.true;
       });
 
       it('should call clearCallback', () => {
-        service['state'] = 'half-open';
-        service['timers'] = new Set([setTimeout(() => { }, interval) as any]);
-
         service.register();
 
         expect(clearCallbackStub.calledOnce).to.be.true;
@@ -126,9 +133,16 @@ describe('@circuit CircuitState', () => {
 
       describe('should set state to half-open after timeout ms', () => {
 
-        it('should allow execution after interval', async () => {
-          service['state'] = 'half-open';
+        beforeEach(async () => {
+          policyStub.allowExecution.returns(false);
+          service.register(new Error('error'));
 
+          await delay(timeout);
+
+          policyStub.allowExecution.returns(true);
+        });
+
+        it('should allow execution after interval', async () => {
           service.register(new Error('42'));
           await delay(timeout);
 
@@ -136,8 +150,6 @@ describe('@circuit CircuitState', () => {
         });
 
         it('should not allow execution if after interval it register error', async () => {
-          service['state'] = 'half-open';
-
           service.register(new Error('42'));
           await delay(timeout);
 
