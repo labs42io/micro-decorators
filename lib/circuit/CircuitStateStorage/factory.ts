@@ -6,16 +6,16 @@ import { CircuitStateStorage } from './CircuitStateStorage';
 import { ClassCircuitStateStorage } from './ClassCircuitStateStorage';
 import { InstanceCircuitStateStorage } from './InstanceCircuitStateStorage';
 
-export class CircuitStateStorageFactory implements Factory<CircuitStateStorage> {
+export class CircuitStateStorageFactory
+  implements Factory<CircuitStateStorage, ['args-hash' | 'class' | 'instance']> {
 
   constructor(
-    private readonly scope: 'args-hash' | 'class' | 'instance',
     private readonly circuitStateFactory: CircuitStateFactory,
     private readonly hashService: HashService,
   ) { }
 
-  public create(): CircuitStateStorage {
-    switch (this.scope) {
+  public create(scope: 'args-hash' | 'class' | 'instance'): CircuitStateStorage {
+    switch (scope) {
       case 'args-hash':
         return new ArgumentsCircuitStateStorage(this.circuitStateFactory, this.hashService);
 
@@ -26,7 +26,7 @@ export class CircuitStateStorageFactory implements Factory<CircuitStateStorage> 
         return new InstanceCircuitStateStorage(this.circuitStateFactory);
 
       default:
-        throw new Error(`@circuit unsuported scope option: ${this.scope}`);
+        throw new Error(`@circuit unsuported scope option: ${scope}`);
     }
   }
 

@@ -16,7 +16,8 @@ describe('@circuit CircuitStateFactory', () => {
   beforeEach(() => {
     policyFactoryStub = sinon.createStubInstance(PolicyFactory);
 
-    service = new CircuitStateFactory(timeout, interval, errorFilter, policyFactoryStub as any);
+    service =
+      new CircuitStateFactory(timeout, interval, errorFilter, policyFactoryStub as any, 'rate');
   });
 
   it('should create', () => {

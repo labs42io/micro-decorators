@@ -5,6 +5,7 @@ import { CircuitOptions, DEFAULT_OPTIONS } from './CircuitOptions';
 import { CircuitStateFactory } from './CircuitState/factory';
 import { CircuitStateStorageFactory } from './CircuitStateStorage/factory';
 import { PolicyFactory } from './Policy/factory';
+import { CircuitStateStorage } from './CircuitStateStorage/CircuitStateStorage';
 
 export { CircuitOptions };
 
@@ -22,20 +23,11 @@ export { CircuitOptions };
 export function circuit(
   threshold: number,
   timeout: number,
-  options: CircuitOptions = DEFAULT_OPTIONS,
+  options?: CircuitOptions,
 ): MethodDecorator {
 
-  const { interval, onError, errorFilter = () => true, scope = 'class', policy = 'errors' }
-    = options;
-
-  const hashService = new HashService();
-  const policyFactory = new PolicyFactory(threshold, policy);
-  const cirucitStateFactory =
-    new CircuitStateFactory(timeout, interval, errorFilter, policyFactory);
-  const circuitStateStorage =
-    new CircuitStateStorageFactory(scope, cirucitStateFactory, hashService).create();
-
-  const raise = raiseStrategy({ onError }, 'throw');
+  const raise = raiseStrategy(options, 'throw');
+  const circuitStateStorage = createCircuitStateStorage(threshold, timeout, options);
 
   return function (_: any, propertyKey: any, descriptor: PropertyDescriptor) {
     const method: (...args: any[]) => any = descriptor.value;
@@ -79,4 +71,19 @@ export function circuit(
     return descriptor;
   };
 
+}
+
+function createCircuitStateStorage(
+  threshold: number,
+  timeout: number,
+  options: CircuitOptions = DEFAULT_OPTIONS,
+): CircuitStateStorage {
+
+  const { interval, errorFilter = () => true, scope = 'class', policy = 'errors' } = options;
+
+  const hashService = new HashService();
+  const policyFactory = new PolicyFactory(threshold);
+  const cirucitStateFactory =
+    new CircuitStateFactory(timeout, interval, errorFilter, policyFactory, policy);
+  return new CircuitStateStorageFactory(cirucitStateFactory, hashService).create(scope);
 }
