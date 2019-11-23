@@ -41,17 +41,10 @@ export type CircuitOptions = {
   errorFilter?: (err: Error) => boolean,
 };
 
-/**
- * A circuit breaker.
- * After the method fails `threshold` count it enters the closed state and
- * throws a `Circuit closed.` error. Once in closed state, the circuit fails
- * for the provided `timeout` milliseconds. After the `timeout` interval expires
- * the circuit transitions to half-opened state and allows next execution.
- * If the execution succeeds then circuit transitions back to open state and resets
- * the number of counted errors to zero.
- * @param threshold the max number of failures until the circuit gets closed.
- * @param timeout timeout in milliseconds to keep the circuit in closed state.
- */
-export function circuit(threshold: number, timeout: number, options?: CircuitOptions) {
-  throw new Error('Not implemented.');
-}
+export const DEFAULT_OPTIONS: Readonly<CircuitOptions> = {
+  interval: undefined,
+  policy: 'errors',
+  onError: 'throw',
+  scope: 'class',
+  errorFilter: () => true,
+};
