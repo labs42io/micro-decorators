@@ -53,7 +53,7 @@ describe('@bulkhead', () => {
     });
 
     it('should not throw for given correct options', async () => {
-      const instance = new (factory({ size: 3, onError: 'ignore', scope: 'class' }))();
+      const instance = new (factory({ size: 3, onError: 'ignoreAsync', scope: 'class' }))();
 
       await expect(instance.get()).not.be.rejected;
     });
