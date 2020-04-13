@@ -26,16 +26,12 @@ export type RetryOptions = {
    * A custom function can be used to provide custom interval (in milliseconds)
    * based on attempt number (indexed from one).
    */
-  waitPattern?: number | number[] | ((attempt: number) => number),
+  waitPattern?: WaitPattern,
 };
 
-/**
- * Retries the execution of a method for a given number of attempts.
- * If the method fails to succeed after `attempts` retries, it fails
- * with error `Retry failed.`
- * @param attempts max number of attempts to retry execution
- * @param options (optional) retry options
- */
-export function retry(attempts: number, options?: number): any {
-  throw new Error('Not implemented.');
-}
+export type WaitPattern = number | number[] | ((attempt: number) => number);
+
+export const DEFAULT_ERROR = 'Retry failed.';
+export const DEFAULT_OPTIONS: RetryOptions = {
+  errorFilter: () => true,
+};
