@@ -1,5 +1,5 @@
 import { Retryer } from './Retryer';
-import { DEFAULT_OPTIONS, RetryOptions } from './RetryOptions';
+import { RetryOptions } from './RetryOptions';
 
 export { RetryOptions };
 

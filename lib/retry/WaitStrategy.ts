@@ -19,6 +19,7 @@ export class WaitStrategy {
     if (Array.isArray(this.waitPattern)) {
       const values = this.waitPattern as number[];
       const count = values.length;
+
       return index > count ? values[count - 1] : values[index];
     }
 
@@ -32,4 +33,5 @@ export class WaitStrategy {
 
     throw new Error(`Option ${typeof this.waitPattern} is not supported for 'waitPattern'.`);
   }
+
 }
